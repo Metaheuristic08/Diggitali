@@ -1,17 +1,17 @@
 import { initializeApp } from "firebase/app";
 //import { getAnalytics } from "firebase/analytics";
-import {getAuth, GoogleAuthProvider} from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCTvT6xz3ehX-eA31pcTXbJ26JVOSRI9bo",
-  authDomain: "ladico-80eb7.firebaseapp.com",
-  projectId: "ladico-80eb7",
-  storageBucket: "ladico-80eb7.firebasestorage.app",
-  messagingSenderId: "955310221466",
-  appId: "1:955310221466:web:38b9fa11acb37004fb1723",
-  measurementId: "G-782WZNGPYZ"
+  apiKey: "AIzaSyCOFq_3nQaLr84G9OdvH1TNZYexvrqfwhw",
+  authDomain: "ludico-backend.firebaseapp.com",
+  projectId: "ludico-backend",
+  storageBucket: "ludico-backend.firebasestorage.app",
+  messagingSenderId: "663116086194",
+  appId: "1:663116086194:web:ebb51b7246f147a25d82ab",
+  measurementId: "G-2WE2ZG3FF8"
 };
 
 
@@ -20,4 +20,4 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app)
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
-export {auth,provider, db};
+export { auth, provider, db };

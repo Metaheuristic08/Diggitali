@@ -22,7 +22,7 @@ function LoginRegister() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-  document.title = isSignUp ? "Registrarse | Ladico" : "Iniciar Sesión | Ladico";
+    document.title = isSignUp ? "Registrarse | Ladico" : "Iniciar Sesión | Ladico";
   }, [isSignUp]);
 
 
@@ -37,27 +37,27 @@ function LoginRegister() {
   };
 
   const handleRegister = async (e) => {
-  e.preventDefault();
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    e.preventDefault();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    // Guardar datos adicionales en Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      username,
-      email,
-      age,
-      gender,
-      country,
-      createdAt: new Date()
-    });
+      // Guardar datos adicionales en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username,
+        email,
+        age,
+        gender,
+        country,
+        createdAt: new Date()
+      });
 
-    navigate("/competencias");
+      navigate("/competencias");
 
-  } catch (error) {
-    alert(error.message);
-  }
-};
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   const handleClick = async () => {
     try {
