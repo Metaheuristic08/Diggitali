@@ -1,5 +1,5 @@
 import React from 'react';
-import '../style/CompetenceIntro.css';
+import '../../styles/components/CompetenceIntro.css';
 
 function CompetenceIntro() {
   return (

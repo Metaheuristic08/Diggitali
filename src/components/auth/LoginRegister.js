@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, provider, db } from "./firebase";
+import { auth, provider, db } from "../../services/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithPopup
 } from "firebase/auth";
-import "../style/loginRegister.css";
+import "../../styles/components/loginRegister.css";
 
 function LoginRegister() {
   const navigate = useNavigate();
@@ -28,16 +28,77 @@ function LoginRegister() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // Validaciones básicas
+    if (!email || !password) {
+      alert("Por favor, completa todos los campos.");
+      return;
+    }
+
+    if (!email.includes('@')) {
+      alert("Por favor, ingresa un email válido.");
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/competencias");
     } catch (error) {
-      alert(error.message);
+      console.error("Error de autenticación:", error);
+      let errorMessage = "Error al iniciar sesión";
+
+      switch (error.code) {
+        case 'auth/invalid-credential':
+          errorMessage = "Credenciales inválidas. Verifica tu email y contraseña.";
+          break;
+        case 'auth/user-not-found':
+          errorMessage = "No existe una cuenta con este email.";
+          break;
+        case 'auth/wrong-password':
+          errorMessage = "Contraseña incorrecta.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "El formato del email no es válido.";
+          break;
+        case 'auth/user-disabled':
+          errorMessage = "Esta cuenta ha sido deshabilitada.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "Demasiados intentos fallidos. Intenta más tarde.";
+          break;
+        default:
+          errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Validar
+
+    if (!username || !email || !password || !age || !gender || !country) {
+      alert("Por favor, completa todos los campos.");
+      return;
+    }
+
+    if (!email.includes('@')) {
+      alert("Por favor, ingresa un email válido.");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (parseInt(age) < 13 || parseInt(age) > 120) {
+      alert("Por favor, ingresa una edad válida (13-120 años).");
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -55,7 +116,27 @@ function LoginRegister() {
       navigate("/competencias");
 
     } catch (error) {
-      alert(error.message);
+      console.error("Error en el registro:", error);
+      let errorMessage = "Error al crear la cuenta";
+
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = "Este email ya está registrado. Intenta iniciar sesión.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "El formato del email no es válido.";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "El registro con email/contraseña no está habilitado.";
+          break;
+        default:
+          errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -64,10 +145,16 @@ function LoginRegister() {
       await signInWithPopup(auth, provider);
       navigate("/competencias");
     } catch (error) {
+      console.error("Error en login con Google:", error);
+
       if (error.code === "auth/popup-closed-by-user") {
         console.log("El usuario cerró el popup sin iniciar sesión.");
+      } else if (error.code === "auth/popup-blocked") {
+        alert("El popup fue bloqueado por el navegador. Permite popups para este sitio.");
+      } else if (error.code === "auth/cancelled-popup-request") {
+        console.log("Solicitud de popup cancelada.");
       } else {
-        alert(error.message);
+        alert(`Error al iniciar sesión con Google: ${error.message}`);
       }
     }
   };
@@ -81,7 +168,24 @@ function LoginRegister() {
       await sendPasswordResetEmail(auth, email);
       alert("Te hemos enviado un enlace para restablecer tu contraseña.");
     } catch (error) {
-      alert(error.message);
+      console.error("Error al enviar email de recuperación:", error);
+      let errorMessage = "Error al enviar el email de recuperación";
+
+      switch (error.code) {
+        case 'auth/user-not-found':
+          errorMessage = "No existe una cuenta con este email.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "El formato del email no es válido.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "Demasiadas solicitudes. Intenta más tarde.";
+          break;
+        default:
+          errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 

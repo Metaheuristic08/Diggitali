@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../style/Header.css';
+import '../../styles/components/Header.css';
 
 function Header({ username = "Usuario" }) {
   const [open, setOpen] = useState(false);

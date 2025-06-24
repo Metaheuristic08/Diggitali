@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LoginRegister from './components/LoginRegister';
-import HomePage from './components/HomePage';
+import LoginRegister from './components/auth/LoginRegister';
+import HomePage from './pages/HomePage';
 import Competencias from './pages/Competencias';
-import DigitalSkillsEvaluation from './components/DigitalSkillsEvaluation';
-import ItemGenerator from './components/ItemGenerator';
+import DigitalSkillsEvaluation from './components/evaluation/DigitalSkillsEvaluation';
+import ItemGenerator from './components/tools/ItemGenerator';
 
 function App() {
   return (

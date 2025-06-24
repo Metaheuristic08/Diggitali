@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import "../style/homePage.css";
-import Navbar from './NavBar';
+import "../styles/pages/homePage.css";
+import Navbar from '../components/common/NavBar';
 
 
 function HomePage() {

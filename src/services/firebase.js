@@ -1,9 +1,6 @@
 import { initializeApp } from "firebase/app";
-//import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-
-//(A) IzaSyCTvT6xz3ehX-eA31pcTXbJ26JVOSRI9bo
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOFq_3nQaLr84G9OdvH1TNZYexvrqfwhw",
@@ -15,10 +12,15 @@ const firebaseConfig = {
   measurementId: "G-2WE2ZG3FF8"
 };
 
-
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-//const analytics = getAnalytics(app);
-const auth = getAuth(app)
-const provider = new GoogleAuthProvider();
-const db = getFirestore(app);
-export {auth,provider, db};
+
+// Initialize Firebase services
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
+export const db = getFirestore(app);
+
+// Configure Google provider
+provider.setCustomParameters({
+  prompt: 'select_account'
+});

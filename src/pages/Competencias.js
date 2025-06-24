@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import CompetenceList from '../components/CompetenceList';
-import CompetenceIntro from '../components/CompetenceIntro';
-import Footer from '../components/Footer';
+import Sidebar from '../components/common/Sidebar';
+import Header from '../components/common/Header';
+import CompetenceList from '../components/competences/CompetenceList';
+import CompetenceIntro from '../components/competences/CompetenceIntro';
+import Footer from '../components/common/Footer';
 import Progreso from './Progreso';
 import Explorar from './Explorar';
-import '../style/competences.css';
+import '../styles/pages/competences.css';
 
 
 function CompetenciasPage() {
@@ -25,8 +25,8 @@ function CompetenciasPage() {
   }
 
   useEffect(() => {
-      document.title = "Página Principal | Ladico";
-    }, []);
+    document.title = "Página Principal | Ladico";
+  }, []);
 
   return (
     <div className="app">

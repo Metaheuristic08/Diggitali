@@ -55,6 +55,8 @@ const DigitalSkillsEvaluation = () => {
   }, [currentStep]);
 
   // Simulación de preguntas (esto debería venir de una base de datos o API)
+
+  
   const questions = [
     {
       id: 1,

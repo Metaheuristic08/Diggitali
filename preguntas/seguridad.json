@@ -1,0 +1,92 @@
+[
+    {
+        "type": "multiple-choice",
+        "competence": "4.1",
+        "level": "Básico 2",
+        "title": "Proteger dispositivo perdido",
+        "scenario": "Pierdes tu celular con información sensible (correos, bancos, fotos).",
+        "options": [
+            "Opción A (correcta): Usar \"Encontrar mi dispositivo\" para bloquearlo/borrarlo remotamente",
+            "Opción B (distractor): Confiar en que quien lo encuentre no revisará tus datos",
+            "Opción C (distractor): Publicar en redes \"Perdí mi celular, por favor devuélvanlo\" con tu número",
+            "Opción D (distractor): Nada, esperar a que te contacten"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! El borrado remoto protege tu privacidad ante pérdidas.",
+            "incorrect": "Actúa rápido: dispositivos perdidos son puertas a fraudes si no se protegen."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "4.2",
+        "level": "Intermedio 1",
+        "title": "Phishing en correo bancario",
+        "scenario": "Recibes un email que parece de tu banco pidiendo \"actualizar datos por seguridad\".",
+        "options": [
+            "Opción A (correcta): Verificar URL real del banco (sin hacer clic) y reportar como phishing",
+            "Opción B (distractor): Hacer clic en el link e ingresar tus credenciales \"por si acaso\"",
+            "Opción C (distractor): Reenviar el correo a familiares para que \"estén alerta\"",
+            "Opción D (distractor): Descargar el archivo adjunto para verificar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Los bancos nunca piden datos sensibles por correo.",
+            "incorrect": "El phishing simula instituciones legítimas. Ante la duda, contacta por canales oficiales."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "4.3",
+        "level": "Básico 2",
+        "title": "Fatiga digital en teletrabajo",
+        "scenario": "Llevas 8 horas continuas frente a la pantalla con dolor de cabeza y ojos secos.",
+        "options": [
+            "Opción A (correcta): Hacer pausas cada 30-50 mins, ajustar brillo y usar lágrimas artificiales",
+            "Opción B (distractor): Tomar café energizante para seguir trabajando",
+            "Opción C (distractor): Ignorar síntomas \"por cumplir deadlines\"",
+            "Opción D (distractor): Usar gotas para ojos rojos sin descansar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Excelente! La salud digital es tan importante como la productividad.",
+            "incorrect": "La exposición prolongada causa estrés visual y físico. Programa descansos activos."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "4.4",
+        "level": "Intermedio 1",
+        "title": "Huella de carbono digital",
+        "scenario": "Quieres reducir el impacto ambiental de tu actividad en internet.",
+        "options": [
+            "Opción A (correcta): Limpiar correos antiguos, usar nube eficiente y streaming en calidad adecuada",
+            "Opción B (distractor): Subir todos tus archivos a 3 nubes diferentes \"por seguridad\"",
+            "Opción C (distractor): Ver videos en 4K automático todo el día",
+            "Opción D (distractor): Ignorar el tema porque \"lo digital no contamina\""
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Pequeños cambios colectivos reducen significativamente la huella digital.",
+            "incorrect": "Los data centers consumen enorme energía. Optimiza tu almacenamiento y consumo de ancho de banda."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "4.2",
+        "level": "Básico 2",
+        "title": "Contraseñas seguras",
+        "scenario": "Debes crear una clave para tu nueva cuenta de correo electrónico principal.",
+        "options": [
+            "Opción A (correcta): Usar frase larga con números/símbolos (ej: \"MíPerroTiene3Años!\")",
+            "Opción B (distractor): Poner \"123456\" o \"password\" por facilidad",
+            "Opción C (distractor): Usar tu fecha de nacimiento",
+            "Opción D (distractor): Reutilizar la misma clave de otra cuenta"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Perfecto! Las frases largas son más seguras y memorables que combinaciones complejas cortas.",
+            "incorrect": "Contraseñas débiles o repetidas son la principal causa de hackeos. Usa un gestor si es necesario."
+        }
+    }
+]

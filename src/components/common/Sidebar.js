@@ -1,5 +1,5 @@
 import React from 'react';
-import '../style/Sidebar.css';
+import '../../styles/components/Sidebar.css';
 import { FaHome, FaStar, FaCertificate, FaBookOpen } from 'react-icons/fa';
 
 function Sidebar({ onNavigate, currentPage }) {
