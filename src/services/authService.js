@@ -1,6 +1,6 @@
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signInWithPopup,
   sendPasswordResetEmail,
   signOut,
@@ -44,7 +44,7 @@ const getAuthErrorMessage = (errorCode) => {
 // Registrar usuario con email y contraseña
 export const registerWithEmail = async (userData) => {
   const { email, password, username, age, gender, country } = userData;
-  
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -63,9 +63,9 @@ export const registerWithEmail = async (userData) => {
     return { success: true, user };
   } catch (error) {
     console.error("Error en el registro:", error);
-    return { 
-      success: false, 
-      error: getAuthErrorMessage(error.code) 
+    return {
+      success: false,
+      error: getAuthErrorMessage(error.code)
     };
   }
 };
@@ -74,7 +74,7 @@ export const registerWithEmail = async (userData) => {
 export const loginWithEmail = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
+
     // Actualizar última fecha de login
     await setDoc(doc(db, "users", userCredential.user.uid), {
       lastLogin: new Date()
@@ -83,9 +83,9 @@ export const loginWithEmail = async (email, password) => {
     return { success: true, user: userCredential.user };
   } catch (error) {
     console.error("Error de autenticación:", error);
-    return { 
-      success: false, 
-      error: getAuthErrorMessage(error.code) 
+    return {
+      success: false,
+      error: getAuthErrorMessage(error.code)
     };
   }
 };
@@ -120,9 +120,9 @@ export const loginWithGoogle = async () => {
     return { success: true, user };
   } catch (error) {
     console.error("Error en login con Google:", error);
-    return { 
-      success: false, 
-      error: getAuthErrorMessage(error.code) 
+    return {
+      success: false,
+      error: getAuthErrorMessage(error.code)
     };
   }
 };
@@ -134,9 +134,9 @@ export const resetPassword = async (email) => {
     return { success: true };
   } catch (error) {
     console.error("Error al enviar email de recuperación:", error);
-    return { 
-      success: false, 
-      error: getAuthErrorMessage(error.code) 
+    return {
+      success: false,
+      error: getAuthErrorMessage(error.code)
     };
   }
 };
@@ -157,7 +157,7 @@ export const getUserData = async (uid) => {
   try {
     const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
-    
+
     if (docSnap.exists()) {
       return { success: true, userData: docSnap.data() };
     } else {
