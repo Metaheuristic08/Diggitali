@@ -226,12 +226,11 @@ async function uploadQuestionsFromFile(filename, categoryData) {
     const batch = writeBatch(db);
     let batchCount = 0;
     let processedCount = 0;
-    
-    for (let i = 0; i < questions.length; i++) {
+      for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
       
-      // Validar estructura de la pregunta
-      if (!question.question || !question.options || !Array.isArray(question.options)) {
+      // Validar estructura de la pregunta (usando la estructura real de tus archivos)
+      if (!question.title || !question.scenario || !question.options || !Array.isArray(question.options)) {
         console.log(`   ⚠️  Pregunta ${i + 1} tiene estructura inválida, saltando...`);
         continue;
       }
@@ -240,12 +239,14 @@ async function uploadQuestionsFromFile(filename, categoryData) {
         id: `${categoryData.code}_${String(i + 1).padStart(3, '0')}`,
         categoryCode: categoryData.code,
         categoryName: categoryData.name,
-        question: question.question.trim(),
+        type: question.type || 'multiple-choice',
+        title: question.title.trim(),
+        scenario: question.scenario.trim(),
         options: question.options.map(opt => opt.trim()),
-        correctAnswer: question.correctAnswer || 0,
-        difficulty: question.difficulty || 'medium',
+        correctAnswerIndex: question.correctAnswerIndex || 0,
         competence: question.competence || categoryData.competences[0],
-        explanation: question.explanation || '',
+        level: question.level || 'Básico 1',
+        feedback: question.feedback || { correct: '', incorrect: '' },
         tags: question.tags || [],
         order: i + 1,
         isActive: true,
