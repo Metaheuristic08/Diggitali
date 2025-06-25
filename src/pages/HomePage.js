@@ -38,9 +38,18 @@ function HomePage() {
       <section className="areas-section">
         <h2>Ponte a prueba en 5 áreas digitales principales</h2>
         <p>Las pruebas ladico evalúan tu dominio en 5 áreas y 21 competencias digitales del <a href="https://joint-research-centre.ec.europa.eu/digcomp_en" target="_blank" rel="noopener noreferrer">Marco de Referencia Europeo DigComp</a>.</p>
-        <Link to="/competencias-digitales" className="btn-areas">
-          🚀 Explorar Competencias Digitales
-        </Link>
+        
+        <div className="evaluation-buttons" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', margin: '2rem 0' }}>
+          <Link to="/competencias-digitales" className="btn-areas">
+            🚀 Explorar Competencias Digitales
+          </Link>
+          <Link to="/evaluacion-mejorada" className="btn-areas" style={{ backgroundColor: '#4CAF50' }}>
+            ⭐ Nueva Evaluación Mejorada
+          </Link>
+          <Link to="/evaluacion-digital" className="btn-areas" style={{ backgroundColor: '#FF9800' }}>
+            📝 Evaluación Original
+          </Link>
+        </div>
 
         <div className="areas-cards">
           <div className="area-card">

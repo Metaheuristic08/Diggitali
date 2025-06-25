@@ -1,0 +1,461 @@
+/* Estilos para el sistema de evaluación mejorado */
+
+/* QuestionPresenter */
+.question-presenter {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-presenter .question-header {
+  margin-bottom: 24px;
+}
+
+.question-presenter .progress-section {
+  margin-bottom: 16px;
+}
+
+.question-presenter .question-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-presenter .question-title {
+  color: #1976d2;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.question-presenter .question-scenario {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 24px;
+}
+
+.question-presenter .options-section {
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.question-presenter .option-item {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.question-presenter .option-item:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+.question-presenter .option-item.selected {
+  background-color: #e3f2fd;
+  border-color: #1976d2;
+}
+
+.question-presenter .navigation-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  margin-top: auto;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* AntiCheatProtection */
+.anti-cheat-container {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.anti-cheat-container.violations {
+  border: 2px solid #ff9800;
+}
+
+.anti-cheat-container.violations::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed #ff9800;
+  border-radius: 8px;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.anti-cheat-blocked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  text-align: center;
+}
+
+.anti-cheat-blocked .blocked-icon {
+  font-size: 80px;
+  color: #f44336;
+  margin-bottom: 16px;
+}
+
+/* NavigationControls */
+.navigation-controls {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.navigation-controls .progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.navigation-controls .progress-bar {
+  margin-bottom: 24px;
+}
+
+.navigation-controls .progress-bar .MuiLinearProgress-root {
+  height: 10px;
+  border-radius: 5px;
+  background-color: #e0e0e0;
+}
+
+.navigation-controls .progress-bar .MuiLinearProgress-bar {
+  border-radius: 5px;
+  background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+}
+
+.navigation-controls .stepper-container {
+  margin-bottom: 24px;
+}
+
+.navigation-controls .controls-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.navigation-controls .stats-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.navigation-controls .progress-info {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* EvaluationResults */
+.evaluation-results {
+  width: 100%;
+  padding: 32px 0;
+}
+
+.evaluation-results .results-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.evaluation-results .level-card {
+  text-align: center;
+  color: white;
+  margin-bottom: 32px;
+}
+
+.evaluation-results .level-card .level-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.evaluation-results .level-card .level-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.evaluation-results .level-card .level-percentage {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.evaluation-results .stats-grid {
+  margin-bottom: 32px;
+}
+
+.evaluation-results .stat-card {
+  text-align: center;
+  height: 100%;
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.evaluation-results .stat-card.correct {
+  border-color: #4caf50;
+}
+
+.evaluation-results .stat-card.incorrect {
+  border-color: #f44336;
+}
+
+.evaluation-results .stat-card.blocked {
+  border-color: #ff9800;
+}
+
+.evaluation-results .stat-card .stat-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.evaluation-results .stat-card .stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.evaluation-results .stat-card .stat-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.evaluation-results .competences-section {
+  margin: 32px 0;
+}
+
+.evaluation-results .competence-card {
+  margin-bottom: 16px;
+}
+
+.evaluation-results .recommendations-section {
+  margin: 32px 0;
+}
+
+.evaluation-results .action-buttons {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.evaluation-results .action-buttons .MuiButton-root {
+  min-width: 150px;
+}
+
+.evaluation-results .results-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+/* Improved Digital Skills Evaluation */
+.improved-evaluation {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.improved-evaluation .evaluation-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+
+.improved-evaluation .logo-section {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  z-index: 10;
+}
+
+.improved-evaluation .logo-section img {
+  height: 80px;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));
+}
+
+.improved-evaluation .evaluation-title {
+  margin-top: 48px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.improved-evaluation .protected-area {
+  flex: 1;
+  min-height: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .question-presenter .navigation-controls {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .navigation-controls .controls-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .evaluation-results .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .evaluation-results .action-buttons .MuiButton-root {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .improved-evaluation .logo-section {
+    position: relative;
+    top: 0;
+    left: 0;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation-controls {
+    padding: 16px;
+  }
+  
+  .evaluation-results .stat-card {
+    padding: 16px;
+  }
+  
+  .evaluation-results .stat-card .stat-number {
+    font-size: 2rem;
+  }
+  
+  .evaluation-results .level-card .level-percentage {
+    font-size: 2.5rem;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Estados de hover y focus mejorados */
+.MuiButton-root {
+  transition: all 0.3s ease !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.MuiChip-root {
+  transition: all 0.3s ease !important;
+}
+
+.MuiChip-root:hover {
+  transform: scale(1.05);
+}
+
+/* Mejoras de accesibilidad */
+.MuiButton-root:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.MuiRadio-root:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Indicadores de estado */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-indicator.completed {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-indicator.current {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-indicator.error {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-indicator.blocked {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-indicator.pending {
+  background-color: #f5f5f5;
+  color: #757575;
+}

@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import Competencias from './pages/Competencias';
 import DigitalCompetencesPage from './pages/DigitalCompetencesPage';
 import DigitalSkillsEvaluation from './components/evaluation/DigitalSkillsEvaluation';
+import ImprovedDigitalSkillsEvaluation from './components/evaluation/ImprovedDigitalSkillsEvaluation';
 import ItemGenerator from './components/tools/ItemGenerator';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/competencias" element={<Competencias />} />
         <Route path="/competencias-digitales" element={<DigitalCompetencesPage />} />
         <Route path="/evaluacion-digital" element={<DigitalSkillsEvaluation />} />
+        <Route path="/evaluacion-mejorada" element={<ImprovedDigitalSkillsEvaluation />} />
         <Route path="/generador-items" element={<ItemGenerator />} />
       </Routes>
     </Router>
