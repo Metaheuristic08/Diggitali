@@ -11,30 +11,30 @@
   - Diseño responsivo para desktop y móvil
   - Integrar con el sistema de navegación
 
-- [ ] **Implementar sistema de registro de respuestas**
+- [X] **Implementar sistema de registro de respuestas**
   - Capturar respuestas del usuario
   - Validar selección antes de continuar
   - Verificar respuestas
 
-- [ ] **Desarrollar controles de navegación**
+- [X] **Desarrollar controles de navegación**
   - Botón "Siguiente" para avanzar
   - Botón "Anterior" para retroceder (si es permitido)
   - Indicador de progreso visual
   - Numeración de preguntas (ej: 1 de 3)
 
 #### 1.2 Sistema de Protección y Alertas
-- [ ] **Implementar detección de intentos de salida**
+- [X] **Implementar detección de intentos de salida**
   - Detectar cambio de pestañas/ventanas
   - Detectar movimientos del mouse fuera del área de pregunta
   - Sistema de advertencias progresivas
 
-- [ ] **Crear sistema de alertas**
+- [X] **Crear sistema de alertas**
   - Modal de confirmación antes de salir
   - Contador de intentos de trampa
   - Bloqueo de pregunta después de 3 intentos
 
 #### 1.3 Pantalla de Resumen Final
-- [ ] **Diseñar componente EvaluationResults**
+- [X] **Diseñar componente EvaluationResults**
   - Mostrar preguntas correctas/incorrectas/bloqueadas
   - Calcular y mostrar porcentaje de aciertos
   - Determinar nivel alcanzado según criterios
@@ -43,29 +43,28 @@
 ### 2. MÓDULO DE CONTROL (BACKEND/LÓGICA DE ESTADO)
 
 #### 2.1 Gestión de Banco de Preguntas
-- [ ] **Integrar con sistema de las preguntas**
+- [X] **Integrar con sistema de las preguntas** ✅
   - Recibir preguntas generadas (Mediante Firebase Firestore, están subidas, hay que rescatarlas nada mas)
 
-- [ ] **Desarrollar QuestionManager**
+- [X] **Desarrollar QuestionManager** ✅
   - Cargar preguntas desde Firebase
   - Filtrar por dimensión y competencia
   - Seleccionar preguntas de nivel básico (3 preguntas)
 
 #### 2.2 Control de Flujo de Evaluación
-- [ ] **Implementar EvaluationController**
+- [X] **Implementar EvaluationController** ✅
   - Controlar inicio de evaluación
   - Gestionar navegación entre preguntas
   - Manejar finalización automática
 
-- [ ] **Sistema de cálculo de resultados**
+- [X] **Sistema de cálculo de resultados** ✅
   - Implementar lógica: 2 de 3 correctas = avance
   - Calcular estadísticas en tiempo real
   - Determinar nivel alcanzado
 
 #### 2.3 Persistencia de Datos
-- [ ] **Configurar almacenamiento de resultados**
+- [X] **Configurar almacenamiento de resultados** ✅
   - Guardar resultados en Firebase
-  - Exportar resultados en JSON/CSV
   - Historial de evaluaciones por usuario
 
 ### 3. ADAPTABILIDAD Y RESPONSIVIDAD
@@ -79,13 +78,13 @@
 ### 4. INTEGRACIÓN CON DIMENSIONES Y COMPETENCIAS
 
 #### 4.1 Dimensión 1: Información y Alfabetización Informacional
-- [ ] **Configurar competencias 1.1, 1.2, 1.3**
+- [X] **Configurar competencias 1.1, 1.2, 1.3** ✅
   - Cargar preguntas específicas de nivel básico.
   - Implementar lógica de evaluación por competencia
   - Integrar con sistema de progreso
 
 #### 4.2 Dimensión 4: Seguridad
-- [ ] **Configurar competencias 4.1, 4.2, 4.3, 4.4**
+- [X] **Configurar competencias 4.1, 4.2, 4.3, 4.4** ✅
   - Cargar preguntas específicas de nivel básico
   - Implementar lógica de evaluación por competencia
   - Integrar con sistema de progreso
@@ -93,13 +92,13 @@
 ### 5. MEJORAS DE LA FUNCIONALIDAD EXISTENTE
 
 #### 5.1 Componente de Evaluación Actual
-- [ ] **Mejorar DigitalSkillsEvaluation.jsx**
+- [X] **Mejorar DigitalSkillsEvaluation.jsx** ✅
   - Adaptar para mostrar solo 3 preguntas por nivel
   - Implementar lógica 2/3 correctas para avanzar
   - Integrar con nuevo sistema de dimensiones
 
 #### 5.2 Servicio de Preguntas
-- [ ] **Extender QuestionsService**
+- [X] **Extender QuestionsService** ✅
   - Método para obtener preguntas por nivel básico
   - Filtrado por dimensiones específicas (1 y 4)
   - Randomización controlada de preguntas

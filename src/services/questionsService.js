@@ -376,14 +376,18 @@ export class QuestionsService {
         const allQuestions = [...dimension1Questions, ...dimension4Questions];
         
         if (allQuestions.length >= 3) {
-          return this.shuffleArray(allQuestions.slice(0, 3));
+          const selectedQuestions = this.shuffleArray(allQuestions.slice(0, 3));
+          // Randomizar alternativas de cada pregunta
+          return this.randomizeEvaluationQuestions(selectedQuestions);
         }
       } catch (complexError) {
         console.warn('Consultas complejas fallaron, usando método de respaldo:', complexError.message);
       }
       
       // Si fallan las consultas complejas, usar método de emergencia
-      return await this.getEmergencyBasicEvaluation();
+      const emergencyQuestions = await this.getEmergencyBasicEvaluation();
+      // Randomizar alternativas de las preguntas de emergencia
+      return this.randomizeEvaluationQuestions(emergencyQuestions);
       
     } catch (error) {
       console.error('Error obteniendo preguntas de evaluación básica:', error);
@@ -597,7 +601,7 @@ export class QuestionsService {
 
   // Preguntas de prueba como último recurso
   static getTestQuestions() {
-    return [
+    const questions = [
       {
         id: 'test-1',
         title: '¿Cuál es la mejor práctica para crear una contraseña segura?',
@@ -613,7 +617,8 @@ export class QuestionsService {
         level: 'Básico 1',
         dimension: '4',
         isActive: true,
-        order: 1
+        order: 1,
+        type: 'multiple_choice'
       },
       {
         id: 'test-2',
@@ -630,7 +635,8 @@ export class QuestionsService {
         level: 'Básico 1',
         dimension: '1',
         isActive: true,
-        order: 1
+        order: 1,
+        type: 'multiple_choice'
       },
       {
         id: 'test-3',
@@ -647,9 +653,57 @@ export class QuestionsService {
         level: 'Básico 1',
         dimension: '4',
         isActive: true,
-        order: 2
+        order: 2,
+        type: 'multiple_choice'
       }
     ];
+
+    // Randomizar alternativas para las preguntas de prueba también
+    return this.randomizeEvaluationQuestions(questions);
+  }
+
+  // Randomizar alternativas de una pregunta
+  static randomizeQuestionAlternatives(question) {
+    if (!question.alternatives || !Array.isArray(question.alternatives)) {
+      return question;
+    }
+
+    // Crear copia de la pregunta para no mutar el original
+    const randomizedQuestion = JSON.parse(JSON.stringify(question));
+    
+    // Guardar la respuesta correcta original
+    const originalCorrectAnswer = question.correctAnswer;
+    const originalCorrectText = question.alternatives[originalCorrectAnswer];
+    
+    // Crear array de alternativas con sus índices originales
+    const alternativesWithIndex = question.alternatives.map((alt, index) => ({
+      text: alt,
+      originalIndex: index
+    }));
+    
+    // Mezclar las alternativas
+    const shuffledAlternatives = this.shuffleArray(alternativesWithIndex);
+    
+    // Actualizar las alternativas y encontrar el nuevo índice de la respuesta correcta
+    randomizedQuestion.alternatives = shuffledAlternatives.map(alt => alt.text);
+    randomizedQuestion.correctAnswer = shuffledAlternatives.findIndex(
+      alt => alt.originalIndex === originalCorrectAnswer
+    );
+    
+    // Agregar metadata sobre la randomización
+    randomizedQuestion._randomized = true;
+    randomizedQuestion._originalOrder = question.alternatives;
+    randomizedQuestion._originalCorrectAnswer = originalCorrectAnswer;
+    
+    console.log(`🔀 Alternativas randomizadas para pregunta: ${question.title}`);
+    console.log(`   Respuesta correcta movida de índice ${originalCorrectAnswer} a ${randomizedQuestion.correctAnswer}`);
+    
+    return randomizedQuestion;
+  }
+
+  // Randomizar todas las preguntas de una evaluación
+  static randomizeEvaluationQuestions(questions) {
+    return questions.map(question => this.randomizeQuestionAlternatives(question));
   }
 }
 

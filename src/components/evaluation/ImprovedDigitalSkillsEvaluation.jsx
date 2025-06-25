@@ -28,104 +28,66 @@ import AntiCheatProtection from './AntiCheatProtection';
 import NavigationControls from './NavigationControls';
 import EvaluationResults from './EvaluationResults';
 import QuestionsService from '../../services/questionsService';
+import evaluationController from '../../services/evaluationController';
 
 // Importar estilos
 import '../../styles/components/ImprovedEvaluation.css';
 
 const ImprovedDigitalSkillsEvaluation = () => {
-    // Estados principales
-    const [currentStep, setCurrentStep] = useState(0);
-    const [score, setScore] = useState({
-        correct: 0,
-        incorrect: 0,
-        blocked: 0
-    });
-    const [answers, setAnswers] = useState([]); // Respuestas del usuario
-    const [isEvaluationComplete, setIsEvaluationComplete] = useState(false);
-    const [hasStarted, setHasStarted] = useState(false);
-    const [questions, setQuestions] = useState([]);
+    // Estados para el controlador de evaluación
+    const [evaluation, setEvaluation] = useState(null);
+    const [currentQuestion, setCurrentQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Estados para anti-trampa
+    // Estados para la UI
+    const [hasStarted, setHasStarted] = useState(false);
+    const [isEvaluationComplete, setIsEvaluationComplete] = useState(false);
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+    // Estados para anti-trampa (mantenidos para compatibilidad con componentes existentes)
     const [violations, setViolations] = useState(0);
     const [isQuestionBlocked, setIsQuestionBlocked] = useState(false);
     const [showExitDialog, setShowExitDialog] = useState(false);
 
-    // Estados para navegación
-    const [stepStatus, setStepStatus] = useState([]);
-    const [selectedAnswer, setSelectedAnswer] = useState(null);
-
-    // Cargar preguntas desde Firestore
+    // Inicializar evaluación con el nuevo controlador
     useEffect(() => {
-        const loadQuestions = async () => {
+        const initializeEvaluation = async () => {
             try {
                 setLoading(true);
-                console.log('🔄 Iniciando carga de preguntas...');
+                console.log('� Inicializando evaluación con EvaluationController...');
 
-                // Obtener preguntas específicas de las dimensiones 1 y 4 (según las tareas)
-                // Usar el nuevo método específico para evaluación básica
-                const evaluationQuestions = await QuestionsService.getBasicEvaluationQuestions();
-                console.log('✅ Preguntas obtenidas:', evaluationQuestions.length);
+                // Obtener usuario actual (si está logueado)
+                const currentUser = null; // TODO: Integrar con auth context
+                const userId = currentUser?.uid || null;
 
-                // Si no hay suficientes preguntas, usar método alternativo
-                if (evaluationQuestions.length < 3) {
-                    console.log('⚠️ Pocas preguntas, intentando método alternativo...');
-                    const alternativeQuestions = await QuestionsService.getQuestionsByLevelAndDimensions(
-                        'Básico 1',
-                        ['1', '4'],
-                        3
-                    );
-                    setQuestions(alternativeQuestions);
-                    console.log('📋 Preguntas alternativas:', alternativeQuestions.length);
-                } else {
-                    setQuestions(evaluationQuestions);
-                }
+                // Inicializar evaluación con dimensiones 1 y 4 (según tasks.md)
+                const evaluationData = await evaluationController.startEvaluation(
+                    userId,
+                    ['1', '4'], // Dimensiones: Información y Seguridad
+                    'Básico 1'  // Nivel básico
+                );
 
-                setStepStatus(new Array(evaluationQuestions.length).fill('pending'));
-                setAnswers(new Array(evaluationQuestions.length).fill(null));
+                setEvaluation(evaluationData);
+                setCurrentQuestion(evaluationData.questions[0]);
                 setError(null);
-                console.log('✅ Evaluación configurada correctamente');
-            } catch (err) {
-                console.error('❌ Error cargando preguntas:', err);
-                setError('Error al cargar las preguntas. Por favor, intenta de nuevo.');
+                console.log('✅ Evaluación inicializada:', evaluationData);
 
-                // Fallback: usar método original si fallan los nuevos métodos
-                try {
-                    console.log('🔄 Intentando método de fallback...');
-                    const fallbackQuestions = await QuestionsService.getEvaluationQuestions(1);
-                    const limitedQuestions = fallbackQuestions.slice(0, 3);
-                    setQuestions(limitedQuestions);
-                    setStepStatus(new Array(limitedQuestions.length).fill('pending'));
-                    setAnswers(new Array(limitedQuestions.length).fill(null));
-                    console.log('✅ Fallback exitoso:', limitedQuestions.length, 'preguntas');
-                } catch (fallbackErr) {
-                    console.error('❌ Error en fallback:', fallbackErr);
-                }
+            } catch (err) {
+                console.error('❌ Error inicializando evaluación:', err);
+                setError('Error al inicializar la evaluación. Por favor, intenta de nuevo.');
             } finally {
                 setLoading(false);
             }
         };
 
-        loadQuestions();
-    }, []);
+        initializeEvaluation();
 
-    // Reiniciar estados cuando el componente se monta
-    useEffect(() => {
-        setCurrentStep(0);
-        setScore({ correct: 0, incorrect: 0, blocked: 0 });
-        setIsEvaluationComplete(false);
-        setHasStarted(false);
-        setViolations(0);
-        setIsQuestionBlocked(false);
+        // Cleanup al desmontar
+        return () => {
+            evaluationController.resetEvaluation();
+        };
     }, []);
-
-    // Reiniciar estado de pregunta cuando cambia
-    useEffect(() => {
-        setSelectedAnswer(answers[currentStep] || null);
-        setViolations(0);
-        setIsQuestionBlocked(false);
-    }, [currentStep, answers]);
 
     // Manejar respuesta
     const handleAnswer = (isCorrect) => {
