@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginRegister from './components/auth/LoginRegister';
 import HomePage from './pages/HomePage';
 import Competencias from './pages/Competencias';
+import DigitalCompetencesPage from './pages/DigitalCompetencesPage';
 import DigitalSkillsEvaluation from './components/evaluation/DigitalSkillsEvaluation';
 import ItemGenerator from './components/tools/ItemGenerator';
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/loginregister" element={<LoginRegister />} />
         <Route path="/homepage" element={<HomePage />} />
         <Route path="/competencias" element={<Competencias />} />
+        <Route path="/competencias-digitales" element={<DigitalCompetencesPage />} />
         <Route path="/evaluacion-digital" element={<DigitalSkillsEvaluation />} />
         <Route path="/generador-items" element={<ItemGenerator />} />
       </Routes>

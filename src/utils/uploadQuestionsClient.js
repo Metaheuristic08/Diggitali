@@ -10,6 +10,7 @@ import {
   doc, 
   setDoc, 
   getDocs, 
+  getDoc,
   writeBatch, 
   deleteDoc, 
   serverTimestamp,
@@ -83,6 +84,178 @@ const categoryMapping = {
   }
 };
 
+// Definición detallada de competencias para mejor categorización
+const competencesDefinition = {
+  '1.1': {
+    code: '1.1',
+    name: 'Navegación, búsqueda y filtrado de información, datos y contenidos digitales',
+    category: 'BGID',
+    area: 'Información y alfabetización informacional',
+    description: 'Articular las necesidades de información, buscar información y contenidos en entornos digitales, acceder a ellos y navegar entre ellos. Crear y actualizar estrategias de búsqueda personales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '1.2': {
+    code: '1.2', 
+    name: 'Evaluación de información, datos y contenidos digitales',
+    category: 'BGID',
+    area: 'Información y alfabetización informacional',
+    description: 'Analizar, comparar y evaluar de manera crítica la credibilidad y fiabilidad de las fuentes de información, datos y contenidos digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '1.3': {
+    code: '1.3',
+    name: 'Almacenamiento y recuperación de información, datos y contenidos digitales', 
+    category: 'BGID',
+    area: 'Información y alfabetización informacional',
+    description: 'Gestionar, almacenar y organizar información, datos y contenidos para facilitar su recuperación. Organizarlos y procesarlos en un entorno estructurado.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.1': {
+    code: '2.1',
+    name: 'Interacción mediante tecnologías digitales',
+    category: 'CC',
+    area: 'Comunicación y colaboración',
+    description: 'Interactuar por medio de diversas tecnologías digitales y entender qué medios de comunicación digital son los adecuados para un contexto determinado.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.2': {
+    code: '2.2',
+    name: 'Compartir información y contenidos digitales',
+    category: 'CC', 
+    area: 'Comunicación y colaboración',
+    description: 'Compartir información y contenidos digitales, y estar al tanto de las prácticas de citación y atribución. Actuar como intermediario, conocer las prácticas de referencia y atribución.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.3': {
+    code: '2.3',
+    name: 'Participación ciudadana en línea',
+    category: 'CC',
+    area: 'Comunicación y colaboración', 
+    description: 'Participar en la sociedad mediante el uso de servicios digitales públicos y privados. Buscar oportunidades de empoderamiento personal y para la participación ciudadana a través de las tecnologías digitales apropiadas.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.4': {
+    code: '2.4',
+    name: 'Colaboración mediante tecnologías digitales',
+    category: 'CC',
+    area: 'Comunicación y colaboración',
+    description: 'Utilizar tecnologías y medios digitales para el trabajo en equipo, procesos colaborativos y creación y construcción común de recursos, conocimientos y contenidos.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.5': {
+    code: '2.5',
+    name: 'Netiqueta',
+    category: 'CC',
+    area: 'Comunicación y colaboración',
+    description: 'Estar al tanto de las normas de comportamiento en las interacciones en línea o virtuales. Entender la diversidad cultural y generacional en los entornos digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '2.6': {
+    code: '2.6',
+    name: 'Gestión de la identidad digital',
+    category: 'CC',
+    area: 'Comunicación y colaboración',
+    description: 'Crear y gestionar una o varias identidades digitales, ser capaz de proteger la propia reputación digital, gestionar los datos que uno produce a través de diversas cuentas y aplicaciones.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '3.1': {
+    code: '3.1',
+    name: 'Desarrollo de contenidos digitales',
+    category: 'CCD',
+    area: 'Creación de contenido digital',
+    description: 'Crear y editar contenidos digitales en diversos formatos, expresarse a través de medios digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '3.2': {
+    code: '3.2',
+    name: 'Integración y reelaboración de contenidos digitales',
+    category: 'CCD',
+    area: 'Creación de contenido digital',
+    description: 'Modificar, perfeccionar, mejorar e integrar información y contenidos en un corpus de conocimiento existente para crear conocimientos y contenidos nuevos, originales y relevantes.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '3.3': {
+    code: '3.3',
+    name: 'Derechos de autor y licencias',
+    category: 'CCD',
+    area: 'Creación de contenido digital',
+    description: 'Entender cómo se aplican los derechos de autor y las licencias a la información y contenidos digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '3.4': {
+    code: '3.4',
+    name: 'Programación',
+    category: 'CCD',
+    area: 'Creación de contenido digital',
+    description: 'Planificar y desarrollar una secuencia de instrucciones comprensibles para un sistema informático para resolver un problema determinado o realizar una tarea específica.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '4.1': {
+    code: '4.1',
+    name: 'Protección de dispositivos',
+    category: 'SEG',
+    area: 'Seguridad',
+    description: 'Proteger dispositivos y contenidos digitales, entender los riesgos y amenazas en entornos digitales. Conocer medidas de seguridad y protección y tener debidamente en cuenta la fiabilidad y la privacidad.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '4.2': {
+    code: '4.2',
+    name: 'Protección de datos personales e identidad digital',
+    category: 'SEG',
+    area: 'Seguridad',
+    description: 'Proteger datos personales e identidad digital en entornos digitales. Entender cómo utilizar y compartir información de identificación personal mientras se protege a uno mismo y a otros de daños.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '4.3': {
+    code: '4.3',
+    name: 'Protección de la salud y el bienestar',
+    category: 'SEG',
+    area: 'Seguridad',
+    description: 'Ser capaz de evitar riesgos para la salud y amenazas para el bienestar físico y psicológico al utilizar tecnologías digitales. Ser capaz de protegerse a sí mismo y a otros de posibles peligros en entornos digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '4.4': {
+    code: '4.4',
+    name: 'Protección del entorno',
+    category: 'SEG',
+    area: 'Seguridad',
+    description: 'Ser consciente del impacto ambiental de las tecnologías digitales y su uso.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '5.1': {
+    code: '5.1',
+    name: 'Resolución de problemas técnicos',
+    category: 'RP',
+    area: 'Resolución de problemas',
+    description: 'Identificar problemas técnicos al operar dispositivos y usar entornos digitales, y solucionarlos (desde la solución de problemas básicos hasta la solución de problemas más complejos).',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '5.2': {
+    code: '5.2',
+    name: 'Identificación de necesidades y respuestas tecnológicas',
+    category: 'RP',
+    area: 'Resolución de problemas',
+    description: 'Evaluar las necesidades e identificar, evaluar, seleccionar y utilizar herramientas digitales y posibles respuestas tecnológicas para resolverlas.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '5.3': {
+    code: '5.3',
+    name: 'Uso creativo de tecnologías digitales',
+    category: 'RP',
+    area: 'Resolución de problemas',
+    description: 'Usar las tecnologías digitales de manera creativa para resolver problemas conceptuales a través de medios digitales.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  },
+  '5.4': {
+    code: '5.4',
+    name: 'Identificación de lagunas en la competencia digital',
+    category: 'RP',
+    area: 'Resolución de problemas',
+    description: 'Entender dónde es necesario mejorar o actualizar la propia competencia digital. Ser capaz de apoyar a otros en el desarrollo de su competencia digital.',
+    levels: ['Básico 1', 'Básico 2', 'Intermedio 1', 'Intermedio 2', 'Avanzado 1', 'Avanzado 2']
+  }
+};
+
 // Función para mostrar el header del proceso
 function showHeader() {
   const now = new Date();
@@ -114,8 +287,7 @@ async function verifyConnection() {
 export async function clearCollections() {
   try {
     console.log('🧹 Iniciando limpieza de colecciones...');
-    
-    const collections = ['categories', 'questions'];
+      const collections = ['categories', 'questions', 'competences'];
     let totalDeleted = 0;
     
     for (const collectionName of collections) {
@@ -272,13 +444,33 @@ async function uploadQuestionsFromFile(filename, categoryData) {
       await batch.commit();
       console.log(`   📦 Último lote de ${batchCount} preguntas subido`);
     }
-    
-    // Actualizar contador en la categoría
+      // Actualizar contadores en la categoría y competencia
     const categoryRef = doc(db, 'categories', categoryData.code);
     await setDoc(categoryRef, { 
       questionCount: processedCount,
       updatedAt: serverTimestamp()
     }, { merge: true });
+    
+    // Actualizar contador por competencia
+    const competenceCounter = {};
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      if (question.competence) {
+        competenceCounter[question.competence] = (competenceCounter[question.competence] || 0) + 1;
+      }
+    }
+      // Actualizar documentos de competencias
+    for (const [competenceCode, count] of Object.entries(competenceCounter)) {
+      const competenceRef = doc(db, 'competences', competenceCode);
+      const competenceDoc = await getDoc(competenceRef);
+      if (competenceDoc.exists()) {
+        const currentCount = competenceDoc.data().questionCount || 0;
+        await setDoc(competenceRef, {
+          questionCount: currentCount + count,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+    }
     
     console.log(`   ✅ ${processedCount} preguntas subidas para ${categoryData.name}`);
     return processedCount;
@@ -301,14 +493,18 @@ export async function uploadAllQuestions() {
     }
     
     console.log('🏗️  Iniciando proceso completo de carga...\n');
-    
-    // 1. Crear categorías
+      // 1. Crear categorías
     console.log('📁 PASO 1: Creando categorías...');
     const categoriesCount = await createCategories();
     console.log('');
     
-    // 2. Subir preguntas por categoría
-    console.log('📝 PASO 2: Subiendo preguntas por categoría...');
+    // 2. Crear competencias
+    console.log('🎯 PASO 2: Creando competencias...');
+    const competencesCount = await createCompetences();
+    console.log('');
+    
+    // 3. Subir preguntas por categoría
+    console.log('📝 PASO 3: Subiendo preguntas por categoría...');
     let totalQuestions = 0;
     
     for (const [filename, categoryData] of Object.entries(categoryMapping)) {
@@ -316,11 +512,10 @@ export async function uploadAllQuestions() {
       const questionsCount = await uploadQuestionsFromFile(filename, categoryData);
       totalQuestions += questionsCount;
     }
+      console.log('');
     
-    console.log('');
-    
-    // 3. Mostrar estadísticas finales
-    await showStatistics(categoriesCount, totalQuestions);
+    // 4. Mostrar estadísticas finales
+    await showStatistics(categoriesCount, competencesCount, totalQuestions);
     
     console.log('🎉 ¡PROCESO COMPLETADO EXITOSAMENTE!');
     
@@ -336,7 +531,7 @@ export async function uploadAllQuestions() {
 }
 
 // Función para mostrar estadísticas
-async function showStatistics(categoriesCount, totalQuestions) {
+async function showStatistics(categoriesCount, competencesCount, totalQuestions) {
   try {
     console.log(`
 📊 ESTADÍSTICAS FINALES
@@ -347,18 +542,31 @@ async function showStatistics(categoriesCount, totalQuestions) {
     for (const [filename, categoryData] of Object.entries(categoryMapping)) {
       try {
         const categoryRef = doc(db, 'categories', categoryData.code);
-        const categoryDoc = await categoryRef.get();
+        const categoryDoc = await getDoc(categoryRef);
         const questionCount = categoryDoc.exists() ? categoryDoc.data().questionCount || 0 : 0;
-        
-        console.log(`   • ${categoryData.name}: ${questionCount} preguntas`);
+          console.log(`   • ${categoryData.name}: ${questionCount} preguntas`);
       } catch (error) {
         console.log(`   • ${categoryData.name}: Error obteniendo datos`);
       }
     }
     
-    console.log(`
+    // Mostrar resumen por competencia
+    console.log('\n🎯 Competencias creadas:');
+    for (const [competenceCode, competenceData] of Object.entries(competencesDefinition)) {
+      try {
+        const competenceRef = doc(db, 'competences', competenceCode);
+        const competenceDoc = await getDoc(competenceRef);
+        const questionCount = competenceDoc.exists() ? competenceDoc.data().questionCount || 0 : 0;
+        
+        console.log(`   • ${competenceCode} - ${competenceData.name}: ${questionCount} preguntas`);
+      } catch (error) {
+        console.log(`   • ${competenceCode}: Error obteniendo datos`);
+      }
+    }
+      console.log(`
 📈 RESUMEN TOTAL:
    • Categorías: ${categoriesCount}
+   • Competencias: ${competencesCount}
    • Preguntas: ${totalQuestions}
    • Estado: ✅ Todas las colecciones creadas
    
@@ -366,13 +574,53 @@ async function showStatistics(categoriesCount, totalQuestions) {
 `);
     
   } catch (error) {
-    console.error('⚠️  Error mostrando estadísticas:', error.message);
-    console.log(`
+    console.error('⚠️  Error mostrando estadísticas:', error.message);    console.log(`
 📈 RESUMEN BÁSICO:
    • Categorías: ${categoriesCount}
+   • Competencias: ${competencesCount}
    • Preguntas: ${totalQuestions}
    • Estado: ✅ Proceso completado
 `);
+  }
+}
+
+// Función para crear competencias
+export async function createCompetences() {
+  try {
+    console.log('🎯 Iniciando creación de competencias...');
+    
+    const batch = writeBatch(db);
+    let count = 0;
+    
+    for (const [competenceCode, competenceData] of Object.entries(competencesDefinition)) {
+      const competenceDoc = {
+        id: competenceCode,
+        code: competenceCode,
+        name: competenceData.name,
+        category: competenceData.category,
+        area: competenceData.area,
+        description: competenceData.description,
+        levels: competenceData.levels,
+        questionCount: 0, // Se actualizará después
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        isActive: true
+      };
+      
+      const docRef = doc(db, 'competences', competenceCode);
+      batch.set(docRef, competenceDoc);
+      count++;
+      
+      console.log(`   🎯 Competencia preparada: ${competenceData.name} (${competenceCode})`);
+    }
+    
+    await batch.commit();
+    console.log(`✅ ${count} COMPETENCIAS CREADAS EXITOSAMENTE`);
+    
+    return count;
+  } catch (error) {
+    console.error('❌ ERROR CREANDO COMPETENCIAS:', error);
+    throw error;
   }
 }
 

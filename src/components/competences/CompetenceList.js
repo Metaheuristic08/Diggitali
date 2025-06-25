@@ -1,64 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { CircularProgress, Alert, Box } from '@mui/material';
 import CompetenceCard from './CompetenceCard';
+import QuestionsService from '../../services/questionsService';
 
-const data = [
-  {
-    area: 'BÚSQUEDA Y GESTIÓN DE INFORMACIÓN Y DATOS',
-    color: 'linear-gradient(180deg, #f26a2e 0%, #f7873d 100%)',
-    competences: [
-      { title: 'Buscar y filtrar información', level: 0 },
-      { title: 'Evaluar información digital', level: 0 },
-      { title: 'Gestionar datos e información', level: 0 }
-    ]
-  },
-  {
-    area: 'COMUNICACIÓN Y COLABORACIÓN',
-    color: 'linear-gradient(180deg, #1cb57a 0%, #27b889 100%)',
-    competences: [
-      { title: 'Interacción digital', level: 0 },
-      { title: 'Compartir digitalmente', level: 0 },
-      { title: 'Participación ciudadana', level: 0 },
-      { title: 'Colaboración digital', level: 0 },
-      { title: 'Comportamiento en línea', level: 0 },
-      { title: 'Identidad digital', level: 0 }
-    ]
-  },
-  {
-    area: 'CREACIÓN DE CONTENIDOS DIGITALES',
-    color: 'linear-gradient(180deg, #1da1f2 0%, #2996f5 100%)',
-    competences: [
-      { title: 'Crear contenidos', level: 0 },
-      { title: 'Reusar contenido digital', level: 0 },
-      { title: 'Derechos de autor', level: 0 },
-      { title: 'Programación', level: 0 }
-    ]
-  },
-  {
-    area: 'SEGURIDAD',
-    color: 'linear-gradient(180deg, #8e44ad 0%, #9b59b6 100%)',
-    competences: [
-      { title: 'Seguridad de dispositivos', level: 0 },
-      { title: 'Privacidad y datos personales', level: 0 },
-      { title: 'Salud y bienestar digital', level: 0 },
-      { title: 'Medioambiente digital', level: 0 }
-    ]
-  },
-  {
-    area: 'RESOLUCIÓN DE PROBLEMAS',
-    color: 'linear-gradient(180deg, #34495e 0%, #2c3e50 100%)',
-    competences: [
-      { title: 'Solución de problemas técnicos', level: 0 },
-      { title: 'Necesidades tecnológicas', level: 0 },
-      { title: 'Uso creativo de la tecnología', level: 0 },
-      { title: 'Diagnóstico de habilidades digitales', level: 0 }
-    ]
+const CompetenceList = () => {
+  const [categories, setCategories] = useState([]);
+  const [competences, setCompetences] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [categoriesData, competencesData] = await Promise.all([
+          QuestionsService.getCategories(),
+          QuestionsService.getCompetences()
+        ]);
+        
+        setCategories(categoriesData);
+        setCompetences(competencesData);
+        setError(null);
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        setError('Error al cargar las competencias. Por favor, intenta de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
-];
 
-function CompetenceList() {
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
+
+  // Organizar competencias por categoría
+  const organizedData = categories.map(category => {
+    const categoryCompetences = competences
+      .filter(comp => comp.category === category.code)
+      .map(comp => ({
+        code: comp.code,
+        title: comp.name,
+        level: 0, // Esto se podría obtener del progreso del usuario
+        description: comp.description
+      }));
+
+    return {
+      area: category.name,
+      color: category.color,
+      competences: categoryCompetences
+    };
+  });
+
   return (
     <div className="competence-area-list">
-      {data.map((group, i) => (
+      {organizedData.map((group, i) => (
         <section key={i} className="competence-area">
           <div className="competence-list">
             {group.competences.map((item, j) => (
@@ -68,6 +78,8 @@ function CompetenceList() {
                 title={item.title}
                 level={item.level}
                 color={group.color}
+                description={item.description}
+                competenceCode={item.code}
               />
             ))}
           </div>
@@ -75,6 +87,6 @@ function CompetenceList() {
       ))}
     </div>
   );
-}
+};
 
 export default CompetenceList;

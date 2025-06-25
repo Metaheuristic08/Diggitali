@@ -167,15 +167,17 @@ export class QuestionsService {
       throw error;
     }
   }
-  
-  // Obtener estadísticas de preguntas
+    // Obtener estadísticas de preguntas
   static async getQuestionsStats() {
     try {
       const categories = await this.getCategories();
+      const competences = await this.getCompetences();
       const stats = {
         totalCategories: categories.length,
+        totalCompetences: competences.length,
         totalQuestions: 0,
         questionsByCategory: {},
+        questionsByCompetence: {},
         questionsByLevel: {},
         questionsByType: {}
       };
@@ -195,6 +197,12 @@ export class QuestionsService {
           // Por tipo
           stats.questionsByType[question.type] = 
             (stats.questionsByType[question.type] || 0) + 1;
+          
+          // Por competencia
+          if (question.competence) {
+            stats.questionsByCompetence[question.competence] = 
+              (stats.questionsByCompetence[question.competence] || 0) + 1;
+          }
         });
       }
       
@@ -205,6 +213,77 @@ export class QuestionsService {
     }
   }
   
+  // Obtener todas las competencias ordenadas
+  static async getCompetences() {
+    try {
+      const q = query(
+        collection(db, 'competences'),
+        orderBy('code', 'asc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const competences = [];
+      
+      querySnapshot.forEach((doc) => {
+        competences.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return competences;
+    } catch (error) {
+      console.error('Error obteniendo competencias:', error);
+      throw error;
+    }
+  }
+
+  // Obtener competencias por categoría
+  static async getCompetencesByCategory(categoryCode) {
+    try {
+      const q = query(
+        collection(db, 'competences'),
+        where('category', '==', categoryCode),
+        orderBy('code', 'asc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const competences = [];
+      
+      querySnapshot.forEach((doc) => {
+        competences.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return competences;
+    } catch (error) {
+      console.error(`Error obteniendo competencias de categoría ${categoryCode}:`, error);
+      throw error;
+    }
+  }
+
+  // Obtener una competencia específica
+  static async getCompetenceById(competenceCode) {
+    try {
+      const docRef = doc(db, 'competences', competenceCode);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data()
+        };
+      } else {
+        throw new Error(`Competencia con código ${competenceCode} no encontrada`);
+      }
+    } catch (error) {
+      console.error(`Error obteniendo competencia ${competenceCode}:`, error);
+      throw error;
+    }
+  }
+
   // Función auxiliar para mezclar array
   static shuffleArray(array) {
     const shuffled = [...array];

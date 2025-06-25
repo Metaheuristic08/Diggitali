@@ -17,9 +17,9 @@ function Navbar() {
       </div>
       <ul className="navbar-links">
         <li><Link to="/homepage">Inicio</Link></li>
-        <li><Link to="/generador-items">Generador de Ítems</Link></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#contact">Contacto</a></li>
+        <li><Link to="/competencias-digitales">Competencias</Link></li>
+        <li><Link to="/evaluacion-digital">Evaluación</Link></li>
+        <li><Link to="/generador-items">Generador</Link></li>
       </ul>
       <div className="navbar-button">
         <Link to="/loginregister" className="get-started-btn">Iniciar Sesión</Link>

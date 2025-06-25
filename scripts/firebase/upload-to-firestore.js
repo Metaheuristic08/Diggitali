@@ -87,34 +87,34 @@ const db = admin.firestore();
  */
 async function clearCollections() {
   console.log('🧹 Limpiando colecciones existentes...');
-  
+
   try {
     // Limpiar colección de preguntas
     const questionsSnapshot = await db.collection('questions').get();
     const questionsBatch = db.batch();
-    
+
     questionsSnapshot.docs.forEach(doc => {
       questionsBatch.delete(doc.ref);
     });
-    
+
     if (!questionsSnapshot.empty) {
       await questionsBatch.commit();
       console.log(`   ✅ ${questionsSnapshot.size} preguntas eliminadas`);
     }
-    
+
     // Limpiar colección de categorías
     const categoriesSnapshot = await db.collection('categories').get();
     const categoriesBatch = db.batch();
-    
+
     categoriesSnapshot.docs.forEach(doc => {
       categoriesBatch.delete(doc.ref);
     });
-    
+
     if (!categoriesSnapshot.empty) {
       await categoriesBatch.commit();
       console.log(`   ✅ ${categoriesSnapshot.size} categorías eliminadas`);
     }
-    
+
   } catch (error) {
     console.error('❌ Error limpiando colecciones:', error);
     throw error;
@@ -126,10 +126,10 @@ async function clearCollections() {
  */
 async function createCategories() {
   console.log('📂 Creando categorías...');
-  
+
   const batch = db.batch();
   let categoriesCreated = 0;
-  
+
   for (const [filename, category] of Object.entries(categoryMapping)) {
     const categoryData = {
       id: category.code,
@@ -143,17 +143,17 @@ async function createCategories() {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isActive: true
     };
-    
+
     const docRef = db.collection('categories').doc(category.code);
     batch.set(docRef, categoryData);
     categoriesCreated++;
-    
+
     console.log(`   📁 ${category.name} (${category.code})`);
   }
-  
+
   await batch.commit();
   console.log(`✅ ${categoriesCreated} categorías creadas exitosamente\n`);
-  
+
   return categoriesCreated;
 }
 
@@ -162,19 +162,19 @@ async function createCategories() {
  */
 function validateQuestion(question, filename, index) {
   const errors = [];
-  
+
   if (!question.type) errors.push('Falta tipo de pregunta');
   if (!question.title) errors.push('Falta título');
   if (!question.scenario) errors.push('Falta escenario');
   if (!question.options || !Array.isArray(question.options)) errors.push('Faltan opciones');
   if (typeof question.correctAnswerIndex !== 'number') errors.push('Falta índice de respuesta correcta');
   if (!question.feedback) errors.push('Falta retroalimentación');
-  
+
   if (errors.length > 0) {
     console.warn(`⚠️  Pregunta ${index + 1} en ${filename} tiene errores:`, errors);
     return false;
   }
-  
+
   return true;
 }
 
@@ -183,38 +183,38 @@ function validateQuestion(question, filename, index) {
  */
 async function uploadQuestionsFromFile(filename, filePath) {
   console.log(`📄 Procesando archivo: ${filename}`);
-  
+
   try {
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const questions = JSON.parse(fileContent);
-    
+
     if (!Array.isArray(questions)) {
       throw new Error('El archivo no contiene un array de preguntas');
     }
-    
+
     const category = categoryMapping[filename];
     if (!category) {
       throw new Error(`No se encontró mapeo para el archivo: ${filename}`);
     }
-    
+
     console.log(`   📊 ${questions.length} preguntas encontradas`);
-    
+
     const batch = db.batch();
     let questionsUploaded = 0;
     let questionsSkipped = 0;
-    
+
     for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
-      
+
       // Validar pregunta
       if (!validateQuestion(question, filename, i)) {
         questionsSkipped++;
         continue;
       }
-      
+
       // Crear ID único: CATEGORY_CODE + número con padding
       const questionId = `${category.code}_${String(i + 1).padStart(3, '0')}`;
-      
+
       const questionData = {
         id: questionId,
         categoryCode: category.code,
@@ -232,27 +232,27 @@ async function uploadQuestionsFromFile(filename, filePath) {
         isActive: true,
         source: filename
       };
-      
+
       const docRef = db.collection('questions').doc(questionId);
       batch.set(docRef, questionData);
       questionsUploaded++;
     }
-    
+
     await batch.commit();
-    
+
     // Actualizar conteo de preguntas en la categoría
     await db.collection('categories').doc(category.code).update({
       questionCount: questionsUploaded,
       lastUpdated: admin.firestore.FieldValue.serverTimestamp()
     });
-    
+
     console.log(`   ✅ ${questionsUploaded} preguntas subidas exitosamente`);
     if (questionsSkipped > 0) {
       console.log(`   ⚠️  ${questionsSkipped} preguntas omitidas por errores`);
     }
-    
+
     return { uploaded: questionsUploaded, skipped: questionsSkipped };
-    
+
   } catch (error) {
     console.error(`❌ Error procesando ${filename}:`, error.message);
     return { uploaded: 0, skipped: 0, error: error.message };
@@ -267,47 +267,47 @@ async function main() {
   console.log('📊 Proyecto:', firebaseConfig.projectId);
   console.log('⏰ Fecha:', new Date().toLocaleString('es-ES'));
   console.log('=' * 60);
-  
+
   const startTime = Date.now();
   let totalUploaded = 0;
   let totalSkipped = 0;
   let filesProcessed = 0;
   let filesWithErrors = 0;
-  
+
   try {
     // Paso 1: Limpiar colecciones existentes
     await clearCollections();
-    
+
     // Paso 2: Crear categorías
     const categoriesCreated = await createCategories();
-    
+
     // Paso 3: Procesar archivos de preguntas
     console.log('📝 Subiendo preguntas...');
-    
+
     const preguntasDir = path.join(__dirname, '../../preguntas');
     const files = fs.readdirSync(preguntasDir).filter(file => file.endsWith('.json'));
-    
+
     console.log(`   📁 ${files.length} archivos JSON encontrados\n`);
-    
+
     for (const filename of files) {
       const filePath = path.join(preguntasDir, filename);
       const result = await uploadQuestionsFromFile(filename, filePath);
-      
+
       totalUploaded += result.uploaded;
       totalSkipped += result.skipped;
       filesProcessed++;
-      
+
       if (result.error) {
         filesWithErrors++;
       }
-      
+
       console.log(''); // Línea en blanco entre archivos
     }
-    
+
     // Mostrar estadísticas finales
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
-    
+
     console.log('=' * 60);
     console.log('📊 RESUMEN FINAL:');
     console.log(`   ⏱️  Tiempo transcurrido: ${duration.toFixed(2)}s`);
@@ -317,7 +317,7 @@ async function main() {
     console.log(`   ⚠️  Preguntas omitidas: ${totalSkipped}`);
     console.log(`   ❌ Archivos con errores: ${filesWithErrors}`);
     console.log('=' * 60);
-    
+
     if (filesWithErrors === 0 && totalSkipped === 0) {
       console.log('🎉 ¡Proceso completado exitosamente!');
     } else if (filesWithErrors > 0) {
@@ -325,7 +325,7 @@ async function main() {
     } else {
       console.log('✅ Proceso completado. Algunas preguntas fueron omitidas por errores de validación.');
     }
-    
+
   } catch (error) {
     console.error('💥 Error fatal durante el proceso:', error);
     process.exit(1);

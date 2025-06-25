@@ -13,7 +13,8 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  CircularProgress
 } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -21,6 +22,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import TimerIcon from '@mui/icons-material/Timer';
 import ProtectedQuestionContainer from './ProtectedQuestionContainer';
 import EvaluationSummary from './EvaluationSummary';
+import QuestionsService from '../../services/questionsService';
 
 const DigitalSkillsEvaluation = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -33,6 +35,29 @@ const DigitalSkillsEvaluation = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [isQuestionReady, setIsQuestionReady] = useState(false);
   const [violations, setViolations] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Cargar preguntas desde Firestore
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        setLoading(true);
+        // Obtener un mix de preguntas para evaluación (2 por categoría)
+        const evaluationQuestions = await QuestionsService.getEvaluationQuestions(2);
+        setQuestions(evaluationQuestions);
+        setError(null);
+      } catch (err) {
+        console.error('Error cargando preguntas:', err);
+        setError('Error al cargar las preguntas. Por favor, intenta de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuestions();
+  }, []);
 
   // Efecto para reiniciar el estado cuando el componente se monta
   useEffect(() => {
@@ -53,87 +78,6 @@ const DigitalSkillsEvaluation = () => {
     setIsQuestionReady(false);
     setViolations(0);
   }, [currentStep]);
-
-  // Simulación de preguntas (esto debería venir de una base de datos o API)
-
-  
-  const questions = [
-    {
-      id: 1,
-      title: "Conexión a ChileAtiende",
-      scenario: "Estás tratando de conectarte al sitio de ChileAtiende desde tu celular, pero la página no carga. Estás conectado a una red Wi-Fi pública. Hay un botón que dice 'Ver redes disponibles'. ¿Qué deberás hacer?",
-      type: "interactive",
-      steps: [
-        {
-          id: 1,
-          description: "¿Qué acción realizarás primero?",
-          options: [
-            "Reiniciar el celular",
-            "Ver redes disponibles",
-            "Cerrar la aplicación",
-            "Cambiar de navegador"
-          ],
-          correctAction: "Ver redes disponibles"
-        },
-        {
-          id: 2,
-          description: "Aparece una lista de redes disponibles. Algunas tienen señal débil y otras fuerte. ¿Cuál seleccionarás?",
-          options: [
-            "RedCentroSalud_1 (señal débil)",
-            "RedCentroSalud_2 (señal fuerte)",
-            "RedPublica (señal media)",
-            "RedCentroSalud_3 (señal débil)"
-          ],
-          correctAction: "RedCentroSalud_2 (señal fuerte)"
-        },
-        {
-          id: 3,
-          description: "Aparece el mensaje '¿Deseas conectarte?'. ¿Qué harás?",
-          options: [
-            "Hacer clic en 'No'",
-            "Hacer clic en 'Sí'",
-            "Cerrar el mensaje",
-            "Esperar a que desaparezca"
-          ],
-          correctAction: "Hacer clic en 'Sí'"
-        },
-        {
-          id: 4,
-          description: "Se habilita el botón 'Probar acceso'. ¿Qué acción realizarás?",
-          options: [
-            "Esperar a que la página cargue sola",
-            "Hacer clic en 'Probar acceso'",
-            "Cerrar la ventana",
-            "Reiniciar el proceso"
-          ],
-          correctAction: "Hacer clic en 'Probar acceso'"
-        },
-        {
-          id: 5,
-          description: "Aparece la palabra clave 'habilitado'. ¿Qué debes hacer?",
-          options: [
-            "Ignorar la palabra",
-            "Ingresar la palabra 'habilitado'",
-            "Cerrar la ventana",
-            "Reiniciar el proceso"
-          ],
-          correctAction: "Ingresar la palabra 'habilitado'"
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "Configuración de Wi-Fi",
-      scenario: "Tu red Wi-Fi está teniendo problemas de conexión. ¿Qué pasos seguirías para solucionarlo?",
-      options: [
-        "Reiniciar el router",
-        "Cambiar el canal de Wi-Fi",
-        "Verificar la contraseña",
-        "Todas las anteriores"
-      ],
-      correctAnswer: 3
-    }
-  ];
 
   const handleAnswer = (isCorrect) => {
     if (isCorrect) {
@@ -180,6 +124,82 @@ const DigitalSkillsEvaluation = () => {
       handleQuestionBlocked();
     }
   };
+
+  // Pantalla de loading
+  if (loading) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#f5f5f5'
+      }}>
+        <Container maxWidth="md">
+          <Paper elevation={3} sx={{ p: 6, textAlign: 'center' }}>
+            <CircularProgress size={60} sx={{ mb: 3 }} />
+            <Typography variant="h5" gutterBottom>
+              Cargando Evaluación
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Preparando las preguntas de competencias digitales...
+            </Typography>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Pantalla de error
+  if (error) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#f5f5f5'
+      }}>
+        <Container maxWidth="md">
+          <Paper elevation={3} sx={{ p: 6, textAlign: 'center' }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+            <Button 
+              variant="contained" 
+              onClick={() => window.location.reload()}
+            >
+              Intentar de Nuevo
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Mostrar mensaje si no hay preguntas
+  if (questions.length === 0) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#f5f5f5'
+      }}>
+        <Container maxWidth="md">
+          <Paper elevation={3} sx={{ p: 6, textAlign: 'center' }}>
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              No se encontraron preguntas para la evaluación.
+            </Alert>
+            <Typography variant="body1">
+              Por favor, contacta al administrador del sistema.
+            </Typography>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
 
   if (isEvaluationComplete) {
     return (
@@ -411,4 +431,4 @@ const DigitalSkillsEvaluation = () => {
   );
 };
 
-export default DigitalSkillsEvaluation; 
+export default DigitalSkillsEvaluation;

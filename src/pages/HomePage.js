@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import "../styles/pages/homePage.css";
 import Navbar from '../components/common/NavBar';
+import { Link } from 'react-router-dom';
 
 
 function HomePage() {
@@ -36,8 +37,10 @@ function HomePage() {
       {/* Tercera sección */}
       <section className="areas-section">
         <h2>Ponte a prueba en 5 áreas digitales principales</h2>
-        <p>Las pruebas ladico evalúan tu dominio en 5 áreas y 16 habilidades digitales del <a href="https://joint-research-centre.ec.europa.eu/digcomp_en" target="_blank" rel="noopener noreferrer">Marco de Referencia Europeo DigComp</a>.</p>
-        <button className="btn-areas">Descubrir las habilidades evaluadas</button>
+        <p>Las pruebas ladico evalúan tu dominio en 5 áreas y 21 competencias digitales del <a href="https://joint-research-centre.ec.europa.eu/digcomp_en" target="_blank" rel="noopener noreferrer">Marco de Referencia Europeo DigComp</a>.</p>
+        <Link to="/competencias-digitales" className="btn-areas">
+          🚀 Explorar Competencias Digitales
+        </Link>
 
         <div className="areas-cards">
           <div className="area-card">

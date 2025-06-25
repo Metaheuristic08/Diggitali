@@ -39,13 +39,25 @@
 
 .btn-areas {
   margin: 20px 0;
-  padding: 10px 20px;
-  background-color: #4d84e2;
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 25px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 1.1rem;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-areas:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+  color: white;
+  text-decoration: none;
 }
 
 .areas-cards {
