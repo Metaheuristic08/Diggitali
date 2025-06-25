@@ -1,12 +1,17 @@
-import { uploadAllQuestions, clearCollections, createCategories } from './uploadQuestions.js';
+import { uploadAllQuestions, clearCollections, createCategories } from './uploadQuestionsClient.js';
 
 // Script de utilidades para manejo de preguntas en Firestore
+// Usa Firebase Client SDK para evitar problemas de autenticación
 
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
-
   switch (command) {
+    case 'create':
+      console.log('🏗️  Creando colecciones desde cero...');
+      await uploadAllQuestions();
+      break;
+      
     case 'upload':
       console.log('🚀 Iniciando carga completa de preguntas...');
       await uploadAllQuestions();
@@ -32,20 +37,22 @@ async function main() {
 
 Comandos disponibles:
 
+  create     - Crea las colecciones desde cero (recomendado para inicio)
   upload     - Sube todas las preguntas y categorías
   clear      - Limpia todas las colecciones
   categories - Crea solo las categorías
   help       - Muestra esta ayuda
 
 Uso:
+  npm run questions create     (para crear desde cero)
   npm run questions upload
   npm run questions clear
   npm run questions categories
-      `);
-      break;
+      `);      break;
   }
-  
-  process.exit(0);
 }
 
-main().catch(console.error);
+main().catch(error => {
+  console.error('❌ Error en questionsManager:', error);
+  process.exit(1);
+});
