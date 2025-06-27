@@ -8,64 +8,83 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, provider, db } from "./firebase";
-
-// Manejo de errores de autenticación
-const getAuthErrorMessage = (errorCode) => {
-  switch (errorCode) {
-    case 'auth/invalid-credential':
-      return "Credenciales inválidas. Verifica tu email y contraseña.";
-    case 'auth/user-not-found':
-      return "No existe una cuenta con este email.";
-    case 'auth/wrong-password':
-      return "Contraseña incorrecta.";
-    case 'auth/invalid-email':
-      return "El formato del email no es válido.";
-    case 'auth/user-disabled':
-      return "Esta cuenta ha sido deshabilitada.";
-    case 'auth/too-many-requests':
-      return "Demasiados intentos fallidos. Intenta más tarde.";
-    case 'auth/email-already-in-use':
-      return "Este email ya está registrado. Intenta iniciar sesión.";
-    case 'auth/weak-password':
-      return "La contraseña debe tener al menos 6 caracteres.";
-    case 'auth/operation-not-allowed':
-      return "El registro con email/contraseña no está habilitado.";
-    case 'auth/popup-closed-by-user':
-      return "El usuario cerró la ventana de autenticación.";
-    case 'auth/popup-blocked':
-      return "El popup fue bloqueado por el navegador. Permite popups para este sitio.";
-    case 'auth/cancelled-popup-request':
-      return "Solicitud de popup cancelada.";
-    default:
-      return "Error de autenticación. Intenta nuevamente.";
-  }
-};
+import { handleFirebaseError, withErrorRecovery, ErrorLogger } from "../utils/errorHandling";
+import { validateRegistrationForm, validateLoginForm, sanitizeInput } from "../utils/enhancedValidation";
 
 // Registrar usuario con email y contraseña
 export const registerWithEmail = async (userData) => {
-  const { email, password, username, age, gender, country } = userData;
-
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    // Validar datos de entrada
+    const validation = validateRegistrationForm(userData);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: "Datos de registro inválidos",
+        details: validation.errors
+      };
+    }
 
-    // Guardar datos adicionales en Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      username,
-      email,
-      age: parseInt(age),
-      gender,
-      country,
-      createdAt: new Date(),
-      lastLogin: new Date()
-    });
+    // Sanitizar datos
+    const sanitizedData = {
+      email: sanitizeInput(userData.email).toLowerCase(),
+      password: userData.password, // No sanitizar contraseña
+      username: sanitizeInput(userData.username),
+      age: parseInt(userData.age),
+      gender: userData.gender,
+      country: sanitizeInput(userData.country)
+    };
 
-    return { success: true, user };
+    // Crear usuario con recuperación automática
+    const result = await withErrorRecovery(async () => {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        sanitizedData.email, 
+        sanitizedData.password
+      );
+      
+      const user = userCredential.user;
+
+      // Guardar datos adicionales en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username: sanitizedData.username,
+        email: sanitizedData.email,
+        age: sanitizedData.age,
+        gender: sanitizedData.gender,
+        country: sanitizedData.country,
+        createdAt: new Date(),
+        lastLogin: new Date(),
+        profile: {
+          isComplete: true,
+          registrationMethod: 'email'
+        }
+      });
+
+      return { user };
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'UserRegistration',
+      message: 'Usuario registrado exitosamente',
+      type: 'INFO'
+    }, { userId: result.user.uid, email: sanitizedData.email });
+
+    return { 
+      success: true, 
+      user: result.user,
+      message: "Cuenta creada exitosamente"
+    };
+
   } catch (error) {
-    console.error("Error en el registro:", error);
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { 
+      action: 'registerWithEmail', 
+      email: userData?.email 
+    });
+    
     return {
       success: false,
-      error: getAuthErrorMessage(error.code)
+      error: appError.userMessage,
+      details: appError.details
     };
   }
 };
@@ -73,19 +92,58 @@ export const registerWithEmail = async (userData) => {
 // Iniciar sesión con email y contraseña
 export const loginWithEmail = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Validar datos de entrada
+    const validation = validateLoginForm({ email, password });
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: "Credenciales inválidas",
+        details: validation.errors
+      };
+    }
 
-    // Actualizar última fecha de login
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      lastLogin: new Date()
-    }, { merge: true });
+    // Sanitizar email
+    const sanitizedEmail = sanitizeInput(email).toLowerCase();
 
-    return { success: true, user: userCredential.user };
+    // Iniciar sesión con recuperación automática
+    const result = await withErrorRecovery(async () => {
+      const userCredential = await signInWithEmailAndPassword(
+        auth, 
+        sanitizedEmail, 
+        password
+      );
+
+      // Actualizar última fecha de login
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        lastLogin: new Date()
+      }, { merge: true });
+
+      return userCredential;
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'UserLogin',
+      message: 'Usuario inició sesión exitosamente',
+      type: 'INFO'
+    }, { userId: result.user.uid, email: sanitizedEmail });
+
+    return { 
+      success: true, 
+      user: result.user,
+      message: "Inicio de sesión exitoso"
+    };
+
   } catch (error) {
-    console.error("Error de autenticación:", error);
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { 
+      action: 'loginWithEmail', 
+      email: email 
+    });
+    
     return {
       success: false,
-      error: getAuthErrorMessage(error.code)
+      error: appError.userMessage,
+      details: appError.details
     };
   }
 };
@@ -93,36 +151,58 @@ export const loginWithEmail = async (email, password) => {
 // Iniciar sesión con Google
 export const loginWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    const result = await withErrorRecovery(async () => {
+      const authResult = await signInWithPopup(auth, provider);
+      const user = authResult.user;
 
-    // Verificar si es un usuario nuevo y guardar datos
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
+      // Verificar si es un usuario nuevo y guardar datos
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
 
-    if (!docSnap.exists()) {
-      // Usuario nuevo, guardar datos básicos
-      await setDoc(docRef, {
-        username: user.displayName || "Usuario",
-        email: user.email,
-        photoURL: user.photoURL,
-        provider: "google",
-        createdAt: new Date(),
-        lastLogin: new Date()
-      });
-    } else {
-      // Usuario existente, actualizar última fecha de login
-      await setDoc(docRef, {
-        lastLogin: new Date()
-      }, { merge: true });
-    }
+      if (!docSnap.exists()) {
+        // Usuario nuevo, guardar datos básicos
+        await setDoc(docRef, {
+          username: user.displayName || "Usuario",
+          email: user.email,
+          photoURL: user.photoURL,
+          provider: "google",
+          createdAt: new Date(),
+          lastLogin: new Date(),
+          profile: {
+            isComplete: false,
+            registrationMethod: 'google'
+          }
+        });
+      } else {
+        // Usuario existente, actualizar última fecha de login
+        await setDoc(docRef, {
+          lastLogin: new Date()
+        }, { merge: true });
+      }
 
-    return { success: true, user };
+      return authResult;
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'GoogleLogin',
+      message: 'Usuario inició sesión con Google exitosamente',
+      type: 'INFO'
+    }, { userId: result.user.uid, email: result.user.email });
+
+    return { 
+      success: true, 
+      user: result.user,
+      message: "Inicio de sesión con Google exitoso"
+    };
+
   } catch (error) {
-    console.error("Error en login con Google:", error);
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { action: 'loginWithGoogle' });
+    
     return {
       success: false,
-      error: getAuthErrorMessage(error.code)
+      error: appError.userMessage,
+      details: appError.details
     };
   }
 };
@@ -130,13 +210,42 @@ export const loginWithGoogle = async () => {
 // Restablecer contraseña
 export const resetPassword = async (email) => {
   try {
-    await sendPasswordResetEmail(auth, email);
-    return { success: true };
+    // Validar email
+    const sanitizedEmail = sanitizeInput(email).toLowerCase();
+    
+    if (!sanitizedEmail || !sanitizedEmail.includes('@')) {
+      return {
+        success: false,
+        error: "Email inválido"
+      };
+    }
+
+    await withErrorRecovery(async () => {
+      await sendPasswordResetEmail(auth, sanitizedEmail);
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'PasswordReset',
+      message: 'Email de recuperación enviado',
+      type: 'INFO'
+    }, { email: sanitizedEmail });
+
+    return { 
+      success: true,
+      message: "Email de recuperación enviado exitosamente"
+    };
+
   } catch (error) {
-    console.error("Error al enviar email de recuperación:", error);
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { 
+      action: 'resetPassword', 
+      email: email 
+    });
+    
     return {
       success: false,
-      error: getAuthErrorMessage(error.code)
+      error: appError.userMessage,
+      details: appError.details
     };
   }
 };
@@ -144,32 +253,219 @@ export const resetPassword = async (email) => {
 // Cerrar sesión
 export const logout = async () => {
   try {
-    await signOut(auth);
-    return { success: true };
+    const currentUser = auth.currentUser;
+    
+    await withErrorRecovery(async () => {
+      await signOut(auth);
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'UserLogout',
+      message: 'Usuario cerró sesión exitosamente',
+      type: 'INFO'
+    }, { userId: currentUser?.uid });
+
+    return { 
+      success: true,
+      message: "Sesión cerrada exitosamente"
+    };
+
   } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-    return { success: false, error: "Error al cerrar sesión" };
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { action: 'logout' });
+    
+    return { 
+      success: false, 
+      error: appError.userMessage,
+      details: appError.details
+    };
   }
 };
 
 // Obtener datos del usuario
 export const getUserData = async (uid) => {
   try {
-    const docRef = doc(db, "users", uid);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      return { success: true, userData: docSnap.data() };
-    } else {
-      return { success: false, error: "No se encontraron datos del usuario" };
+    if (!uid) {
+      return { 
+        success: false, 
+        error: "ID de usuario requerido" 
+      };
     }
+
+    const result = await withErrorRecovery(async () => {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        throw new Error("Usuario no encontrado");
+      }
+    }, 2, 1000);
+
+    return { 
+      success: true, 
+      userData: result 
+    };
+
   } catch (error) {
-    console.error("Error al obtener datos del usuario:", error);
-    return { success: false, error: "Error al obtener datos del usuario" };
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { 
+      action: 'getUserData', 
+      userId: uid 
+    });
+    
+    return { 
+      success: false, 
+      error: appError.userMessage,
+      details: appError.details
+    };
   }
 };
 
-// Observador de estado de autenticación
-export const onAuthStateChange = (callback) => {
-  return onAuthStateChanged(auth, callback);
+// Actualizar datos del usuario
+export const updateUserData = async (uid, updateData) => {
+  try {
+    if (!uid) {
+      return { 
+        success: false, 
+        error: "ID de usuario requerido" 
+      };
+    }
+
+    // Sanitizar datos de actualización
+    const sanitizedData = {};
+    for (const [key, value] of Object.entries(updateData)) {
+      if (typeof value === 'string') {
+        sanitizedData[key] = sanitizeInput(value);
+      } else {
+        sanitizedData[key] = value;
+      }
+    }
+
+    await withErrorRecovery(async () => {
+      const docRef = doc(db, "users", uid);
+      await setDoc(docRef, {
+        ...sanitizedData,
+        updatedAt: new Date()
+      }, { merge: true });
+    }, 2, 1000);
+
+    ErrorLogger.log({
+      name: 'UserDataUpdate',
+      message: 'Datos de usuario actualizados',
+      type: 'INFO'
+    }, { userId: uid, updatedFields: Object.keys(sanitizedData) });
+
+    return { 
+      success: true,
+      message: "Datos actualizados exitosamente"
+    };
+
+  } catch (error) {
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { 
+      action: 'updateUserData', 
+      userId: uid 
+    });
+    
+    return { 
+      success: false, 
+      error: appError.userMessage,
+      details: appError.details
+    };
+  }
 };
+
+// Verificar si el usuario está autenticado
+export const checkAuthStatus = () => {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve({
+        isAuthenticated: !!user,
+        user: user
+      });
+    });
+  });
+};
+
+// Observador de estado de autenticación con manejo de errores
+export const onAuthStateChange = (callback) => {
+  try {
+    return onAuthStateChanged(auth, (user) => {
+      try {
+        callback(user);
+      } catch (error) {
+        ErrorLogger.log(error, { 
+          action: 'onAuthStateChange_callback' 
+        });
+      }
+    });
+  } catch (error) {
+    ErrorLogger.log(error, { 
+      action: 'onAuthStateChange_setup' 
+    });
+    return () => {}; // Retornar función vacía en caso de error
+  }
+};
+
+// Función para validar la sesión actual
+export const validateCurrentSession = async () => {
+  try {
+    const user = auth.currentUser;
+    
+    if (!user) {
+      return {
+        success: false,
+        error: "No hay sesión activa"
+      };
+    }
+
+    // Verificar que el token no haya expirado
+    await user.getIdToken(true); // Forzar renovación del token
+
+    // Verificar que los datos del usuario existan en Firestore
+    const userData = await getUserData(user.uid);
+    
+    if (!userData.success) {
+      return {
+        success: false,
+        error: "Datos de usuario no encontrados"
+      };
+    }
+
+    return {
+      success: true,
+      user: user,
+      userData: userData.userData
+    };
+
+  } catch (error) {
+    const appError = handleFirebaseError(error);
+    ErrorLogger.log(appError, { action: 'validateCurrentSession' });
+    
+    return {
+      success: false,
+      error: appError.userMessage,
+      details: appError.details
+    };
+  }
+};
+
+const authService = {
+  registerWithEmail,
+  loginWithEmail,
+  loginWithGoogle,
+  resetPassword,
+  logout,
+  getUserData,
+  updateUserData,
+  checkAuthStatus,
+  onAuthStateChange,
+  validateCurrentSession
+};
+
+
+export default authService;
+

@@ -2,31 +2,19 @@ import React, { useState } from 'react';
 import {
   Paper,
   Typography,
-  Button,
   Box,
   RadioGroup,
   FormControlLabel,
   Radio,
-  LinearProgress,
   Chip,
   Alert
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 const QuestionPresenter = ({ 
   question, 
-  currentQuestionIndex, 
-  totalQuestions, 
-  onAnswer, 
-  onNext, 
-  onPrevious, 
-  canGoBack = false,
   selectedAnswer,
   onAnswerChange,
-  violations = 0,
-  isBlocked = false,
-  showValidation = false
+  isBlocked = false
 }) => {
   const [validationMessage, setValidationMessage] = useState('');
 
@@ -36,18 +24,15 @@ const QuestionPresenter = ({
     setValidationMessage(''); // Limpiar mensaje de validación al seleccionar
   };
 
-  const handleNext = () => {
-    if (selectedAnswer === null) {
-      setValidationMessage('Por favor, selecciona una respuesta antes de continuar.');
-      return;
-    }
-    
-    const isCorrect = selectedAnswer === question.correctAnswer;
-    onAnswer(isCorrect);
-    onNext();
-  };
-
-  const progressPercentage = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  if (!question) {
+    return (
+      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h6" color="text.secondary">
+          Cargando pregunta...
+        </Typography>
+      </Paper>
+    );
+  }
 
   if (isBlocked) {
     return (
@@ -56,56 +41,43 @@ const QuestionPresenter = ({
           Esta pregunta ha sido bloqueada por múltiples intentos de hacer trampa.
         </Alert>
         <Typography variant="h6" gutterBottom>
-          Pregunta {currentQuestionIndex + 1} de {totalQuestions}
+          Pregunta bloqueada
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           No puedes responder esta pregunta debido a las violaciones detectadas.
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={onNext}
-          startIcon={<ArrowForwardIcon />}
-        >
-          Continuar con la siguiente pregunta
-        </Button>
       </Paper>
     );
   }
 
   return (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header con progreso */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Chip 
-            label={`Pregunta ${currentQuestionIndex + 1} de ${totalQuestions}`}
-            color="primary"
-            variant="outlined"
-          />
-          <Chip 
-            label={`${Math.round(progressPercentage)}% Completado`}
-            color="secondary"
-            variant="outlined"
-          />
-        </Box>
-        <LinearProgress 
-          variant="determinate" 
-          value={progressPercentage}
-          sx={{ height: 8, borderRadius: 4 }}
-        />
-      </Box>
-
-      {/* Alertas de violaciones */}
-      {violations > 0 && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Advertencia: {violations} intento(s) de hacer trampa detectado(s). 
-          {3 - violations} intento(s) restante(s).
-        </Alert>
-      )}
-
       {/* Contenido de la pregunta */}
       <Paper elevation={2} sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Información de la pregunta */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+            <Chip 
+              label={question.dimension || 'Competencia Digital'}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
+            <Chip 
+              label={question.level || 'Básico'}
+              color="secondary"
+              variant="outlined"
+              size="small"
+            />
+          </Box>
+          
+          {question.competence && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {question.competence}
+            </Typography>
+          )}
+        </Box>
+
         {/* Título y escenario */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" gutterBottom color="primary">
@@ -132,18 +104,18 @@ const QuestionPresenter = ({
           </Typography>
           
           <RadioGroup
-            value={selectedAnswer}
+            value={selectedAnswer !== null ? selectedAnswer : ''}
             onChange={handleAnswerSelection}
             sx={{ mt: 2 }}
           >
-            {question.options.map((option, index) => (
+            {question.alternatives && question.alternatives.map((alternative, index) => (
               <FormControlLabel
                 key={index}
                 value={index}
                 control={<Radio />}
                 label={
                   <Typography variant="body1" sx={{ py: 1 }}>
-                    {option}
+                    {typeof alternative === 'string' ? alternative : alternative.text || alternative}
                   </Typography>
                 }
                 sx={{
@@ -165,46 +137,16 @@ const QuestionPresenter = ({
           </RadioGroup>
         </Box>
 
-        {/* Controles de navegación */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          pt: 3,
-          mt: 'auto',
-          borderTop: '1px solid',
-          borderColor: 'grey.200'
-        }}>
-          <Button
-            variant="outlined"
-            onClick={onPrevious}
-            disabled={!canGoBack || currentQuestionIndex === 0}
-            startIcon={<ArrowBackIcon />}
-          >
-            Anterior
-          </Button>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            {validationMessage && (
-              <Alert severity="warning" sx={{ mb: 1 }}>
-                {validationMessage}
-              </Alert>
-            )}
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              disabled={selectedAnswer === null}
-              endIcon={<ArrowForwardIcon />}
-              sx={{ minWidth: 120 }}
-            >
-              {currentQuestionIndex === totalQuestions - 1 ? 'Finalizar' : 'Siguiente'}
-            </Button>
-          </Box>
-        </Box>
+        {/* Mensaje de validación */}
+        {validationMessage && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            {validationMessage}
+          </Alert>
+        )}
       </Paper>
     </Box>
   );
 };
 
 export default QuestionPresenter;
+

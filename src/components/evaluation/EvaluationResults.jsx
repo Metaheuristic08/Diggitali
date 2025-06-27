@@ -34,8 +34,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import ShareIcon from '@mui/icons-material/Share';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import InfoIcon from '@mui/icons-material/Info';
-import QuestionsService from '../../services/questionsService';
+
 
 const EvaluationResults = ({ 
   score, 
@@ -50,38 +49,25 @@ const EvaluationResults = ({
 }) => {
   const navigate = useNavigate();
   const [showConfirmRestart, setShowConfirmRestart] = useState(false);
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const percentage = ((score.correct / totalQuestions) * 100).toFixed(1);
-
-  // Evaluar si puede avanzar usando la lógica 2/3 correctas
-  const advancement = QuestionsService.evaluateAdvancement(score.correct, totalQuestions);
   
-  // Obtener recomendaciones
-  const recommendations = QuestionsService.getRecommendations(score, totalQuestions);
+  // Calcular porcentaje de forma segura
+  const percentage = totalQuestions > 0 ? ((score.correct / totalQuestions) * 100).toFixed(1) : 0;
 
   // Determinar el nivel basado en el porcentaje
   const getLevelInfo = (percentage) => {
-    if (percentage >= 80) {
+    if (percentage >= 67) { // 2 de 3 correctas = 66.7%
       return {
-        level: "Pionero Digital",
+        level: "Básico Superado",
         color: "success",
-        description: "Excelente dominio de las competencias digitales",
+        description: "¡Excelente! Has superado el nivel básico",
         icon: "🏆",
         gradient: "linear-gradient(135deg, #4CAF50, #45a049)"
       };
-    } else if (percentage >= 60) {
-      return {
-        level: "Integrador", 
-        color: "info",
-        description: "Buen nivel de competencias digitales",
-        icon: "⭐",
-        gradient: "linear-gradient(135deg, #2196F3, #1976d2)"
-      };
     } else {
       return {
-        level: "Explorador",
+        level: "Básico No Superado",
         color: "warning",
-        description: "Nivel básico, con oportunidades de mejora",
+        description: "Necesitas mejorar para superar el nivel básico",
         icon: "🌱",
         gradient: "linear-gradient(135deg, #FF9800, #f57c00)"
       };
@@ -136,6 +122,15 @@ const EvaluationResults = ({
     linkElement.click();
   };
 
+  const handleRestart = () => {
+    setShowConfirmRestart(false);
+    if (onRestart) {
+      onRestart();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header con logo */}
@@ -170,7 +165,7 @@ const EvaluationResults = ({
               {levelInfo.icon}
             </Typography>
             <Typography variant="h4" gutterBottom>
-              Nivel: {levelInfo.level}
+              {levelInfo.level}
             </Typography>
             <Typography variant="h2" sx={{ mb: 2 }}>
               {percentage}%
@@ -202,7 +197,7 @@ const EvaluationResults = ({
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={(score.correct / totalQuestions) * 100}
+                  value={totalQuestions > 0 ? (score.correct / totalQuestions) * 100 : 0}
                   color="success"
                   sx={{ height: 8, borderRadius: 4 }}
                 />
@@ -227,7 +222,7 @@ const EvaluationResults = ({
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={(score.incorrect / totalQuestions) * 100}
+                  value={totalQuestions > 0 ? (score.incorrect / totalQuestions) * 100 : 0}
                   color="error"
                   sx={{ height: 8, borderRadius: 4 }}
                 />
@@ -245,14 +240,14 @@ const EvaluationResults = ({
               <CardContent>
                 <BlockIcon sx={{ fontSize: 48, color: 'warning.main', mb: 2 }} />
                 <Typography variant="h4" color="warning.main">
-                  {score.blocked}
+                  {score.blocked || 0}
                 </Typography>
                 <Typography variant="h6" gutterBottom>
                   Bloqueadas
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={(score.blocked / totalQuestions) * 100}
+                  value={totalQuestions > 0 ? ((score.blocked || 0) / totalQuestions) * 100 : 0}
                   color="warning"
                   sx={{ height: 8, borderRadius: 4 }}
                 />
@@ -261,104 +256,95 @@ const EvaluationResults = ({
           </Grid>
         </Grid>
 
-        {/* Análisis de competencias */}
-        {competences.length > 0 && (
-          <>
-            <Divider sx={{ my: 4 }} />
-            <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-              📊 Análisis por Competencias
-            </Typography>
-            <Grid container spacing={2}>
-              {competences.map((competence, index) => (
-                <Grid item xs={12} sm={6} key={index}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        {competence.name}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {competence.correct || 0} de {competence.total || 0} correctas
-                        </Typography>
-                        <Chip 
-                          label={`${((competence.correct || 0) / (competence.total || 1) * 100).toFixed(0)}%`}
-                          size="small"
-                          color={competence.correct >= competence.total * 0.7 ? 'success' : 'warning'}
-                        />
-                      </Box>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={((competence.correct || 0) / (competence.total || 1)) * 100}
-                        color={competence.correct >= competence.total * 0.7 ? 'success' : 'warning'}
-                      />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </>
-        )}
-
         {/* Recomendaciones */}
         <Divider sx={{ my: 4 }} />
         <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
           💡 Recomendaciones
         </Typography>
         
-        {percentage >= 80 ? (
+        {score.correct >= 2 ? (
           <Alert severity="success" sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>¡Excelente trabajo!</Typography>
             <List dense>
               <ListItem>
                 <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
+                <ListItemText primary="Has superado el nivel básico con 2 o más respuestas correctas" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
+                <ListItemText primary="Puedes avanzar al siguiente nivel de evaluación" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
                 <ListItemText primary="Mantén tu nivel practicando regularmente" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText primary="Considera compartir tus conocimientos con otros" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><CheckCircleIcon color="success" /></ListItemIcon>
-                <ListItemText primary="Explora competencias digitales avanzadas" />
-              </ListItem>
-            </List>
-          </Alert>
-        ) : percentage >= 60 ? (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom>¡Buen trabajo! Puedes mejorar aún más</Typography>
-            <List dense>
-              <ListItem>
-                <ListItemIcon><TrophyIcon color="primary" /></ListItemIcon>
-                <ListItemText primary="Practica las áreas donde tuviste dificultades" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><TrophyIcon color="primary" /></ListItemIcon>
-                <ListItemText primary="Busca recursos adicionales de aprendizaje" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><TrophyIcon color="primary" /></ListItemIcon>
-                <ListItemText primary="Vuelve a intentar la evaluación en unas semanas" />
               </ListItem>
             </List>
           </Alert>
         ) : (
           <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom>¡No te desanimes! Hay mucho potencial de mejora</Typography>
+            <Typography variant="h6" gutterBottom>¡No te desanimes! Puedes mejorar</Typography>
             <List dense>
+              <ListItem>
+                <ListItemIcon><TrophyIcon color="warning" /></ListItemIcon>
+                <ListItemText primary="Necesitas al menos 2 respuestas correctas de 3 para superar el nivel básico" />
+              </ListItem>
               <ListItem>
                 <ListItemIcon><TrophyIcon color="warning" /></ListItemIcon>
                 <ListItemText primary="Dedica tiempo a estudiar las competencias básicas" />
               </ListItem>
               <ListItem>
                 <ListItemIcon><TrophyIcon color="warning" /></ListItemIcon>
-                <ListItemText primary="Busca cursos o tutoriales sobre competencias digitales" />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><TrophyIcon color="warning" /></ListItemIcon>
-                <ListItemText primary="Practica regularmente con herramientas digitales" />
+                <ListItemText primary="Vuelve a intentar la evaluación cuando te sientas preparado" />
               </ListItem>
             </List>
           </Alert>
+        )}
+
+        {/* Detalles de preguntas */}
+        {showDetailedResults && questionDetails.length > 0 && (
+          <>
+            <Divider sx={{ my: 4 }} />
+            <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+              📋 Detalle por Pregunta
+            </Typography>
+            {questionDetails.map((detail, index) => (
+              <Accordion key={index}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                    {detail.blocked ? (
+                      <BlockIcon color="warning" />
+                    ) : detail.correct ? (
+                      <CheckCircleIcon color="success" />
+                    ) : (
+                      <CancelIcon color="error" />
+                    )}
+                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                      Pregunta {index + 1}
+                    </Typography>
+                    <Chip 
+                      label={detail.blocked ? "Bloqueada" : detail.correct ? "Correcta" : "Incorrecta"}
+                      color={detail.blocked ? "warning" : detail.correct ? "success" : "error"}
+                      size="small"
+                    />
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography variant="body1" paragraph>
+                    <strong>Pregunta:</strong> {detail.question}
+                  </Typography>
+                  {detail.blocked ? (
+                    <Typography variant="body2" color="warning.main">
+                      Esta pregunta fue bloqueada por violaciones de seguridad.
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" color={detail.correct ? "success.main" : "error.main"}>
+                      Tu respuesta fue {detail.correct ? "correcta" : "incorrecta"}.
+                    </Typography>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </>
         )}
 
         {/* Botones de acción */}
@@ -368,7 +354,7 @@ const EvaluationResults = ({
             color="primary"
             size="large"
             startIcon={<HomeIcon />}
-            onClick={onHome || (() => navigate('/'))}
+            onClick={onHome || (() => navigate('/homepage'))}
             sx={{ minWidth: 150 }}
           >
             Volver al Inicio
@@ -384,19 +370,6 @@ const EvaluationResults = ({
           >
             Intentar de Nuevo
           </Button>
-
-          {showDetailedResults && questionDetails.length > 0 && (
-            <Button
-              variant="outlined"
-              color="info"
-              size="large"
-              startIcon={<InfoIcon />}
-              onClick={() => setShowDetailDialog(true)}
-              sx={{ minWidth: 150 }}
-            >
-              Ver Detalles
-            </Button>
-          )}
 
           <Button
             variant="outlined"
@@ -421,128 +394,40 @@ const EvaluationResults = ({
           </Button>
         </Box>
 
-        {/* Información de avance */}
-        <Box sx={{ mt: 3 }}>
-          <Alert severity={advancement.canAdvance ? "success" : "warning"} sx={{ mb: 2 }}>
+        {/* Información de criterio de evaluación */}
+        <Box sx={{ mt: 4 }}>
+          <Alert severity="info">
             <Typography variant="subtitle1" gutterBottom>
-              {advancement.canAdvance ? 
-                "¡Felicitaciones! Puedes avanzar al siguiente nivel" : 
-                "Necesitas mejorar para avanzar al siguiente nivel"
-              }
+              Criterio de Evaluación
             </Typography>
             <Typography variant="body2">
-              Necesitas {advancement.requiredCorrect} respuestas correctas de {totalQuestions} para avanzar.
-              {advancement.canAdvance ? 
-                ` Has obtenido ${score.correct} correctas.` : 
-                ` Has obtenido ${score.correct} correctas, necesitas ${advancement.requiredCorrect - score.correct} más.`
-              }
+              Para superar el nivel básico necesitas responder correctamente al menos 2 de 3 preguntas (66.7%).
+              Este criterio está basado en el Marco Europeo de Competencias Digitales (DigComp 2.1).
             </Typography>
           </Alert>
-        </Box>
-
-        {/* Recomendaciones personalizadas */}
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">
-            Recomendaciones para ti:
-          </Typography>
-          <List>
-            {recommendations.suggestions.map((suggestion, index) => (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <TrophyIcon color={recommendations.level === 'Avanzado' ? 'success' : 
-                                   recommendations.level === 'Intermedio' ? 'info' : 'warning'} />
-                </ListItemIcon>
-                <ListItemText primary={suggestion} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-
-        {/* Footer */}
-        <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'grey.200', textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Evaluación basada en el Marco Europeo de Competencias Digitales (DigComp 2.1)
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Fecha: {new Date().toLocaleDateString()} | Total de preguntas: {totalQuestions}
-          </Typography>
         </Box>
       </Paper>
 
       {/* Diálogo de confirmación para reiniciar */}
-      <Dialog open={showConfirmRestart} onClose={() => setShowConfirmRestart(false)}>
-        <DialogTitle>Confirmar Reinicio</DialogTitle>
+      <Dialog
+        open={showConfirmRestart}
+        onClose={() => setShowConfirmRestart(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>¿Reiniciar Evaluación?</DialogTitle>
         <DialogContent>
           <Typography>
             ¿Estás seguro de que quieres reiniciar la evaluación? Se perderán todos los resultados actuales.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowConfirmRestart(false)}>Cancelar</Button>
-          <Button 
-            onClick={() => {
-              setShowConfirmRestart(false);
-              if (onRestart) {
-                onRestart();
-              } else {
-                window.location.reload();
-              }
-            }} 
-            color="primary"
-          >
-            Reiniciar
+          <Button onClick={() => setShowConfirmRestart(false)}>
+            Cancelar
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Diálogo de detalles de preguntas */}
-      <Dialog 
-        open={showDetailDialog} 
-        onClose={() => setShowDetailDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Detalles de la Evaluación</DialogTitle>
-        <DialogContent>
-          {questionDetails.map((question, index) => (
-            <Accordion key={index}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {answers[index] === question.correctAnswer ? (
-                    <CheckCircleIcon color="success" />
-                  ) : answers[index] === null ? (
-                    <BlockIcon color="disabled" />
-                  ) : (
-                    <CancelIcon color="error" />
-                  )}
-                  <Typography>Pregunta {index + 1}: {question.title}</Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body2" paragraph>
-                  <strong>Escenario:</strong> {question.scenario}
-                </Typography>
-                <Typography variant="body2" paragraph>
-                  <strong>Tu respuesta:</strong> {
-                    answers[index] !== null ? 
-                    question.options[answers[index]] : 
-                    'No respondida'
-                  }
-                </Typography>
-                <Typography variant="body2" paragraph>
-                  <strong>Respuesta correcta:</strong> {question.options[question.correctAnswer]}
-                </Typography>
-                {question.feedback && (
-                  <Alert severity="info" sx={{ mt: 1 }}>
-                    {question.feedback.correct || question.feedback.incorrect}
-                  </Alert>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowDetailDialog(false)}>Cerrar</Button>
+          <Button onClick={handleRestart} variant="contained" color="primary">
+            Sí, Reiniciar
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>
@@ -550,3 +435,4 @@ const EvaluationResults = ({
 };
 
 export default EvaluationResults;
+

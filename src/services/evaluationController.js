@@ -1,15 +1,15 @@
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
   getDocs,
   doc,
   updateDoc,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
-import { db, auth } from './firebase.js';
+import { db } from './firebase.js'; // Eliminado 'auth' ya que no se usa directamente aquí
 import QuestionsService from './questionsService.js';
 
 /**
@@ -17,7 +17,7 @@ import QuestionsService from './questionsService.js';
  * Implementa la lógica del módulo de control backend según tasks.md
  */
 export class EvaluationController {
-  
+
   constructor() {
     this.currentEvaluation = null;
     this.evaluationId = null;
@@ -33,10 +33,10 @@ export class EvaluationController {
   async startEvaluation(userId = null, dimensions = ['1', '4'], level = 'Básico 1') {
     try {
       console.log('🚀 Iniciando nueva evaluación...');
-      
+
       // Cargar preguntas para la evaluación
       const questions = await this.loadEvaluationQuestions(dimensions, level);
-      
+
       if (questions.length === 0) {
         throw new Error('No se encontraron preguntas para la evaluación');
       }
@@ -61,9 +61,10 @@ export class EvaluationController {
         startTime: new Date(),
         endTime: null,
         metadata: {
-          userAgent: navigator.userAgent,
-          screenResolution: `${screen.width}x${screen.height}`,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          // Acceder a window.screen de forma segura para evitar errores en entornos no-browser
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
+          screenResolution: typeof window !== 'undefined' ? `${window.screen.width}x${window.screen.height}` : 'N/A',
+          timezone: typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'N/A'
         }
       };
 
@@ -88,10 +89,10 @@ export class EvaluationController {
   async loadEvaluationQuestions(dimensions, level) {
     try {
       console.log(`📚 Cargando preguntas para dimensiones: ${dimensions.join(', ')}, nivel: ${level}`);
-      
+
       // Intentar obtener preguntas específicas para evaluación
       let questions = await QuestionsService.getBasicEvaluationQuestions();
-      
+
       if (questions.length >= 3) {
         // Seleccionar 3 preguntas aleatoriamente
         questions = this.shuffleArray(questions).slice(0, 3);
@@ -101,7 +102,7 @@ export class EvaluationController {
 
       // Fallback: buscar por dimensiones específicas
       questions = await QuestionsService.getQuestionsByLevelAndDimensions(level, dimensions, 3);
-      
+
       if (questions.length >= 3) {
         console.log('✅ Preguntas por dimensión obtenidas');
         return questions.slice(0, 3);
@@ -110,13 +111,13 @@ export class EvaluationController {
       // Último fallback: obtener cualquier pregunta disponible
       const allQuestions = await QuestionsService.getEvaluationQuestions(1);
       questions = allQuestions.slice(0, 3);
-      
+
       console.log(`⚠️ Usando fallback: ${questions.length} preguntas`);
       return questions;
 
     } catch (error) {
       console.error('❌ Error cargando preguntas:', error);
-      
+
       // Fallback final: preguntas hardcodeadas
       return this.getHardcodedQuestions();
     }
@@ -140,7 +141,7 @@ export class EvaluationController {
 
     // Evaluar respuesta
     const isCorrect = this.evaluateAnswer(question, answer);
-    
+
     // Registrar respuesta
     this.currentEvaluation.answers[questionIndex] = {
       answer,
@@ -177,14 +178,14 @@ export class EvaluationController {
     if (question.type === 'multiple_choice') {
       return question.correctAnswer === userAnswer;
     }
-    
+
     if (question.type === 'true_false') {
       return question.correctAnswer === userAnswer;
     }
 
     // Para otros tipos de pregunta, asumir que viene con índice correcto
-    return question.alternatives && 
-           question.alternatives[userAnswer] && 
+    return question.alternatives &&
+           question.alternatives[userAnswer] &&
            question.alternatives[userAnswer].isCorrect;
   }
 
@@ -197,13 +198,13 @@ export class EvaluationController {
     }
 
     const nextIndex = this.currentEvaluation.currentQuestionIndex + 1;
-    
+
     if (nextIndex >= this.currentEvaluation.questions.length) {
       return await this.completeEvaluation();
     }
 
     this.currentEvaluation.currentQuestionIndex = nextIndex;
-    
+
     console.log(`➡️ Navegando a pregunta ${nextIndex + 1}`);
     return {
       currentQuestionIndex: nextIndex,
@@ -221,13 +222,13 @@ export class EvaluationController {
     }
 
     const prevIndex = this.currentEvaluation.currentQuestionIndex - 1;
-    
+
     if (prevIndex < 0) {
       return null; // No se puede retroceder más
     }
 
     this.currentEvaluation.currentQuestionIndex = prevIndex;
-    
+
     console.log(`⬅️ Navegando a pregunta ${prevIndex + 1}`);
     return {
       currentQuestionIndex: prevIndex,
@@ -263,7 +264,7 @@ export class EvaluationController {
     if (!this.currentEvaluation) return;
 
     this.currentEvaluation.violations++;
-    
+
     const violation = {
       type,
       timestamp: new Date(),
@@ -274,7 +275,7 @@ export class EvaluationController {
     if (!this.currentEvaluation.violationHistory) {
       this.currentEvaluation.violationHistory = [];
     }
-    
+
     this.currentEvaluation.violationHistory.push(violation);
 
     console.log(`⚠️ Violación registrada: ${type}, Total: ${this.currentEvaluation.violations}`);
@@ -297,7 +298,7 @@ export class EvaluationController {
     if (!this.currentEvaluation) return;
 
     const currentIndex = this.currentEvaluation.currentQuestionIndex;
-    
+
     // Marcar respuesta como bloqueada
     this.currentEvaluation.answers[currentIndex] = {
       answer: null,
@@ -308,7 +309,7 @@ export class EvaluationController {
     };
 
     this.currentEvaluation.score.blocked++;
-    
+
     console.log(`🚫 Pregunta ${currentIndex + 1} bloqueada por violaciones`);
   }
 
@@ -325,7 +326,7 @@ export class EvaluationController {
 
     // Calcular estadísticas finales
     const results = this.calculateFinalResults();
-    
+
     console.log('🏁 Evaluación completada:', results);
 
     // Guardar resultado final en Firebase
@@ -343,11 +344,11 @@ export class EvaluationController {
   calculateFinalResults() {
     const { correct, incorrect, blocked, total } = this.currentEvaluation.score;
     const percentage = Math.round((correct / total) * 100);
-    
+
     // Determinar nivel alcanzado según criterio 2/3
     let levelAchieved = 'No superado';
     let canAdvance = false;
-    
+
     if (correct >= 2) {
       levelAchieved = 'Básico 1';
       canAdvance = true;
@@ -363,14 +364,14 @@ export class EvaluationController {
       violations: this.currentEvaluation.violations,
       answers: this.currentEvaluation.answers,
       questions: this.currentEvaluation.questions,
-      recommendations: this.generateRecommendations(correct, incorrect, blocked)
+      recommendations: this._generateRecommendations(correct, incorrect, blocked) // Renombrado para evitar duplicidad
     };
   }
 
   /**
    * Generar recomendaciones basadas en el desempeño
    */
-  generateRecommendations(correct, incorrect, blocked) {
+  _generateRecommendations(correct, incorrect, blocked) { // Renombrado
     const recommendations = [];
 
     if (correct >= 2) {
@@ -411,7 +412,7 @@ export class EvaluationController {
 
       const docRef = await addDoc(collection(db, 'evaluations'), evaluationData);
       console.log('💾 Evaluación guardada en Firebase:', docRef.id);
-      
+
       return docRef.id;
     } catch (error) {
       console.error('❌ Error guardando evaluación:', error);
@@ -431,7 +432,7 @@ export class EvaluationController {
         ...this.currentEvaluation,
         updatedAt: serverTimestamp()
       });
-      
+
       console.log('🔄 Evaluación actualizada en Firebase');
     } catch (error) {
       console.error('❌ Error actualizando evaluación:', error);
@@ -491,7 +492,7 @@ export class EvaluationController {
         blocked: this.currentEvaluation.answers[index]?.blocked || false
       })),
       metadata: this.currentEvaluation.metadata,
-      duration: this.currentEvaluation.endTime 
+      duration: this.currentEvaluation.endTime
         ? Math.round((this.currentEvaluation.endTime - this.currentEvaluation.startTime) / 1000)
         : null
     };
@@ -554,276 +555,123 @@ export class EvaluationController {
     }
 
     const results = this.calculateFinalResults();
-    const duration = this.currentEvaluation.endTime 
+    const duration = this.currentEvaluation.endTime
       ? Math.round((this.currentEvaluation.endTime - this.currentEvaluation.startTime) / 1000)
       : null;
 
-    return {
-      // Información general
-      general: {
-        evaluationId: this.evaluationId,
-        userId: this.currentEvaluation.userId,
-        startTime: this.currentEvaluation.startTime,
-        endTime: this.currentEvaluation.endTime,
-        duration: duration,
-        framework: 'Marco Europeo DigComp 2.1',
-        dimensions: this.currentEvaluation.dimensions,
-        level: this.currentEvaluation.level
-      },
+    let report = `--- Reporte de Evaluación ---\n\n`;
+    report += `ID de Evaluación: ${this.evaluationId || 'N/A'}\n`;
+    report += `Usuario: ${this.currentEvaluation.userId}\n`;
+    report += `Dimensiones Evaluadas: ${this.currentEvaluation.dimensions.join(', ')}\n`;
+    report += `Nivel: ${this.currentEvaluation.level}\n`;
+    report += `Estado: ${this.currentEvaluation.status}\n`;
+    report += `Duración: ${duration ? `${duration} segundos` : 'N/A'}\n`;
+    report += `Violaciones Detectadas: ${this.currentEvaluation.violations}\n\n`;
 
-      // Resultados
-      results: results,
+    report += `--- Resultados ---\n`;
+    report += `Preguntas Correctas: ${results.score.correct}\n`;
+    report += `Preguntas Incorrectas: ${results.score.incorrect}\n`;
+    report += `Preguntas Bloqueadas: ${results.score.blocked}\n`;
+    report += `Total de Preguntas: ${results.score.total}\n`;
+    report += `Porcentaje de Acierto: ${results.percentage}%\n`;
+    report += `Nivel Alcanzado: ${results.levelAchieved}\n\n`;
 
-      // Análisis por pregunta
-      questionAnalysis: this.currentEvaluation.questions.map((q, index) => {
-        const answer = this.currentEvaluation.answers[index];
-        return {
-          questionNumber: index + 1,
-          title: q.title,
-          dimension: q.dimension,
-          category: q.categoryCode,
-          userAnswer: answer?.answer,
-          correctAnswer: q.correctAnswer,
-          isCorrect: answer?.isCorrect,
-          blocked: answer?.blocked || false,
-          timeSpent: answer?.timeSpent
-        };
-      }),
+    report += `--- Recomendaciones ---\n`;
+    results.recommendations.forEach(rec => {
+      report += `- [${rec.type.toUpperCase()}] ${rec.message} ${rec.action}\n`;
+    });
+    report += `\n`;
 
-      // Análisis por dimensión
-      dimensionAnalysis: this.analyzeDimensions(),
-
-      // Recomendaciones
-      recommendations: this.generateRecommendations(),
-
-      // Metadata técnica
-      metadata: this.currentEvaluation.metadata
-    };
-  }
-
-  /**
-   * Analizar resultados por dimensión
-   */
-  analyzeDimensions() {
-    const dimensionStats = {};
-
+    report += `--- Detalles por Pregunta ---\n`;
     this.currentEvaluation.questions.forEach((q, index) => {
-      const dimension = q.dimension;
       const answer = this.currentEvaluation.answers[index];
-
-      if (!dimensionStats[dimension]) {
-        dimensionStats[dimension] = {
-          total: 0,
-          correct: 0,
-          incorrect: 0,
-          blocked: 0
-        };
-      }
-
-      dimensionStats[dimension].total++;
-      
-      if (answer?.blocked) {
-        dimensionStats[dimension].blocked++;
-      } else if (answer?.isCorrect) {
-        dimensionStats[dimension].correct++;
-      } else {
-        dimensionStats[dimension].incorrect++;
-      }
+      report += `\nPregunta ${index + 1}: ${q.title}\n`;
+      report += `  Dimensión: ${q.dimension}\n`;
+      report += `  Competencia: ${q.competence}\n`;
+      report += `  Nivel: ${q.level}\n`;
+      report += `  Respuesta Correcta: ${q.alternatives[q.correctAnswer]}\n`;
+      report += `  Respuesta del Usuario: ${answer?.answer !== undefined ? q.alternatives[answer.answer] : 'Sin responder'}\n`;
+      report += `  Estado: ${answer?.blocked ? 'Bloqueada' : (answer?.isCorrect ? 'Correcta' : 'Incorrecta')}\n`;
+      report += `  Tiempo de Respuesta: ${answer?.timeSpent ? `${answer.timeSpent}s` : 'N/A'}\n`;
     });
 
-    // Calcular porcentajes
-    Object.keys(dimensionStats).forEach(dimension => {
-      const stats = dimensionStats[dimension];
-      stats.percentage = Math.round((stats.correct / stats.total) * 100);
-    });
-
-    return dimensionStats;
+    return report;
   }
 
   /**
-   * Generar recomendaciones personalizadas
-   */
-  generateRecommendations() {
-    const results = this.calculateFinalResults();
-    const dimensionAnalysis = this.analyzeDimensions();
-    const recommendations = [];
-
-    // Recomendaciones generales basadas en el resultado
-    if (results.percentage >= 80) {
-      recommendations.push({
-        type: 'general',
-        level: 'success',
-        message: 'Excelente nivel de competencias digitales. Considera explorar niveles más avanzados.',
-        actions: [
-          'Evalúa el nivel intermedio',
-          'Mantente actualizado con las tendencias digitales',
-          'Comparte tu conocimiento con otros'
-        ]
-      });
-    } else if (results.percentage >= 60) {
-      recommendations.push({
-        type: 'general',
-        level: 'warning',
-        message: 'Buen nivel básico, pero hay áreas de mejora identificadas.',
-        actions: [
-          'Refuerza las áreas con menor puntuación',
-          'Practica con recursos adicionales',
-          'Considera tomar cursos específicos'
-        ]
-      });
-    } else {
-      recommendations.push({
-        type: 'general',
-        level: 'error',
-        message: 'Se recomienda fortalecer los conocimientos básicos antes de avanzar.',
-        actions: [
-          'Estudia los fundamentos de competencias digitales',
-          'Practica con ejercicios básicos',
-          'Busca recursos educativos especializados'
-        ]
-      });
-    }
-
-    // Recomendaciones específicas por dimensión
-    Object.entries(dimensionAnalysis).forEach(([dimension, stats]) => {
-      if (stats.percentage < 50) {
-        const dimensionNames = {
-          '1': 'Información y Alfabetización Informacional',
-          '2': 'Comunicación y Colaboración',
-          '3': 'Creación de Contenidos Digitales',
-          '4': 'Seguridad',
-          '5': 'Resolución de Problemas'
-        };
-
-        recommendations.push({
-          type: 'dimension',
-          level: 'warning',
-          dimension: dimension,
-          dimensionName: dimensionNames[dimension] || `Dimensión ${dimension}`,
-          message: `Área de mejora prioritaria en ${dimensionNames[dimension]}`,
-          actions: this.getDimensionSpecificActions(dimension)
-        });
-      }
-    });
-
-    return recommendations;
-  }
-
-  /**
-   * Obtener acciones específicas por dimensión
-   */
-  getDimensionSpecificActions(dimension) {
-    const actions = {
-      '1': [
-        'Practica técnicas de búsqueda avanzada',
-        'Aprende a evaluar la credibilidad de fuentes',
-        'Desarrolla habilidades de gestión de información'
-      ],
-      '2': [
-        'Mejora tus habilidades de comunicación digital',
-        'Aprende sobre colaboración en línea',
-        'Desarrolla competencias de participación ciudadana'
-      ],
-      '3': [
-        'Practica la creación de contenidos digitales',
-        'Aprende sobre derechos de autor y licencias',
-        'Desarrolla habilidades de edición digital'
-      ],
-      '4': [
-        'Refuerza conocimientos sobre seguridad digital',
-        'Aprende sobre protección de datos personales',
-        'Practica buenas prácticas de ciberseguridad'
-      ],
-      '5': [
-        'Desarrolla habilidades de resolución de problemas técnicos',
-        'Aprende a identificar necesidades tecnológicas',
-        'Practica la innovación con tecnología digital'
-      ]
-    };
-
-    return actions[dimension] || ['Estudia más sobre esta área de competencia'];
-  }
-
-  /**
-   * Utilidades
-   */
-  shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
-  /**
-   * Preguntas hardcodeadas como último recurso
-   */
-  getHardcodedQuestions() {
-    return [
-      {
-        id: 'hardcoded-1',
-        questionText: '¿Cuál es la función principal de un navegador web?',
-        alternatives: [
-          { text: 'Editar documentos', isCorrect: false },
-          { text: 'Navegar por internet', isCorrect: true },
-          { text: 'Enviar emails', isCorrect: false },
-          { text: 'Reproducir música', isCorrect: false }
-        ],
-        type: 'multiple_choice',
-        correctAnswer: 1,
-        competence: '1.1',
-        dimension: '1',
-        level: 'Básico 1'
-      },
-      {
-        id: 'hardcoded-2',
-        questionText: '¿Qué significa HTTPS en una dirección web?',
-        alternatives: [
-          { text: 'HyperText Transfer Protocol Secure', isCorrect: true },
-          { text: 'Home Text Transfer Protocol System', isCorrect: false },
-          { text: 'High Tech Transfer Protocol Safe', isCorrect: false },
-          { text: 'Hyper Transfer Text Protocol Server', isCorrect: false }
-        ],
-        type: 'multiple_choice',
-        correctAnswer: 0,
-        competence: '4.1',
-        dimension: '4',
-        level: 'Básico 1'
-      },
-      {
-        id: 'hardcoded-3',
-        questionText: '¿Es seguro usar contraseñas simples como "123456"?',
-        alternatives: [
-          { text: 'Verdadero', isCorrect: false },
-          { text: 'Falso', isCorrect: true }
-        ],
-        type: 'true_false',
-        correctAnswer: 1,
-        competence: '4.2',
-        dimension: '4',
-        level: 'Básico 1'
-      }
-    ];
-  }
-
-  /**
-   * Obtener estado actual de la evaluación
-   */
-  getCurrentEvaluation() {
-    return this.currentEvaluation;
-  }
-
-  /**
-   * Resetear evaluación
+   * Reiniciar la evaluación actual
    */
   resetEvaluation() {
     this.currentEvaluation = null;
     this.evaluationId = null;
-    console.log('🔄 Evaluación reseteada');
+    console.log('🔄 Evaluación reiniciada.');
+  }
+
+  /**
+   * Helper para mezclar arrays (Fisher-Yates)
+   */
+  shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  /**
+   * Preguntas hardcodeadas para fallback
+   */
+  getHardcodedQuestions() {
+    console.warn('Usando preguntas hardcodeadas como fallback.');
+    return [
+      {
+        id: 'q_hardcoded_1',
+        title: '¿Cuál de las siguientes opciones es un ejemplo de información personal que debe protegerse en línea?',
+        dimension: 'Seguridad',
+        competence: '4.2. Proteger los datos personales y privacidad.',
+        level: 'Básico',
+        type: 'multiple_choice',
+        alternatives: [
+          'El nombre de tu mascota',
+          'Tu dirección de correo electrónico',
+          'El color de tu coche',
+          'Tu comida favorita'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 'q_hardcoded_2',
+        title: '¿Qué es una contraseña segura?',
+        dimension: 'Seguridad',
+        competence: '4.1. Proteger los dispositivos.',
+        level: 'Básico',
+        type: 'multiple_choice',
+        alternatives: [
+          'Tu fecha de nacimiento',
+          'Una combinación de letras, números y símbolos',
+          'La palabra "contraseña"',
+          'El nombre de tu ciudad'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 'q_hardcoded_3',
+        title: '¿Es seguro abrir correos electrónicos de remitentes desconocidos?',
+        dimension: 'Seguridad',
+        competence: '4.2. Proteger los datos personales y privacidad.',
+        level: 'Básico',
+        type: 'true_false',
+        alternatives: [
+          'Verdadero',
+          'Falso'
+        ],
+        correctAnswer: 1,
+      },
+    ];
   }
 }
 
-// Exportar instancia singleton
 const evaluationController = new EvaluationController();
 export default evaluationController;
+
+

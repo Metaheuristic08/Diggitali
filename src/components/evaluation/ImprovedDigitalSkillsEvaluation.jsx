@@ -35,7 +35,6 @@ import '../../styles/components/ImprovedEvaluation.css';
 
 const ImprovedDigitalSkillsEvaluation = () => {
     // Estados para el controlador de evaluación
-    const [evaluation, setEvaluation] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,6 +43,13 @@ const ImprovedDigitalSkillsEvaluation = () => {
     const [hasStarted, setHasStarted] = useState(false);
     const [isEvaluationComplete, setIsEvaluationComplete] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+    // Estados que faltaban y causaban errores no-undef
+    const [questions, setQuestions] = useState([]);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [answers, setAnswers] = useState([]);
+    const [score, setScore] = useState({ correct: 0, incorrect: 0, blocked: 0 });
+    const [stepStatus, setStepStatus] = useState([]);
 
     // Estados para anti-trampa (mantenidos para compatibilidad con componentes existentes)
     const [violations, setViolations] = useState(0);
@@ -55,7 +61,7 @@ const ImprovedDigitalSkillsEvaluation = () => {
         const initializeEvaluation = async () => {
             try {
                 setLoading(true);
-                console.log('� Inicializando evaluación con EvaluationController...');
+                console.log(' Inicializando evaluación con EvaluationController...');
 
                 // Obtener usuario actual (si está logueado)
                 const currentUser = null; // TODO: Integrar con auth context
@@ -68,8 +74,11 @@ const ImprovedDigitalSkillsEvaluation = () => {
                     'Básico 1'  // Nivel básico
                 );
 
-                setEvaluation(evaluationData);
+                // setEvaluation(evaluationData); // Comentado ya que no se usa
+                setQuestions(evaluationData.questions); // Establecer las preguntas
                 setCurrentQuestion(evaluationData.questions[0]);
+                setAnswers(new Array(evaluationData.questions.length).fill(null));
+                setStepStatus(new Array(evaluationData.questions.length).fill('pending'));
                 setError(null);
                 console.log('✅ Evaluación inicializada:', evaluationData);
 
@@ -115,12 +124,14 @@ const ImprovedDigitalSkillsEvaluation = () => {
         if (selectedAnswer === null) return;
 
         // Evaluar la respuesta
-        const isCorrect = selectedAnswer === questions[currentStep].correctAnswer;
+        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
         handleAnswer(isCorrect);
 
         // Avanzar a la siguiente pregunta o finalizar
         if (currentStep < questions.length - 1) {
             setCurrentStep(prev => prev + 1);
+            setCurrentQuestion(questions[currentStep + 1]);
+            setSelectedAnswer(answers[currentStep + 1]); // Cargar respuesta previamente seleccionada
         } else {
             // Usar la nueva lógica de evaluación de avance
             const advancement = QuestionsService.evaluateAdvancement(score.correct + (isCorrect ? 1 : 0), questions.length);
@@ -134,6 +145,8 @@ const ImprovedDigitalSkillsEvaluation = () => {
     const handlePrevious = () => {
         if (currentStep > 0) {
             setCurrentStep(prev => prev - 1);
+            setCurrentQuestion(questions[currentStep - 1]);
+            setSelectedAnswer(answers[currentStep - 1]); // Cargar respuesta previamente seleccionada
         }
     };
 
@@ -163,6 +176,8 @@ const ImprovedDigitalSkillsEvaluation = () => {
         setTimeout(() => {
             if (currentStep < questions.length - 1) {
                 setCurrentStep(prev => prev + 1);
+                setCurrentQuestion(questions[currentStep + 1]);
+                setSelectedAnswer(answers[currentStep + 1]);
             } else {
                 setIsEvaluationComplete(true);
             }
@@ -171,8 +186,12 @@ const ImprovedDigitalSkillsEvaluation = () => {
 
     // Calcular nivel final
     const calculateFinalLevel = () => {
-        const recommendations = QuestionsService.getRecommendations(score, questions.length);
-        return recommendations.level;
+        const percentage = (score.correct / questions.length) * 100;
+        if (percentage >= 67) { // 2 de 3 = 66.7%
+            return "Explorador";
+        } else {
+            return "Principiante";
+        }
     };
 
     // Manejar finalización
@@ -266,8 +285,8 @@ const ImprovedDigitalSkillsEvaluation = () => {
                 level={calculateFinalLevel()}
                 totalQuestions={questions.length}
                 questionDetails={questions.map((q, index) => ({
-                    question: q.title,
-                    correct: answers[index] === q.correctAnswer,
+                    question: q.title || q.question || `Pregunta ${index + 1}`,
+                    correct: stepStatus[index] === 'completed',
                     blocked: stepStatus[index] === 'blocked'
                 }))}
                 competences={[]} // TODO: Agregar análisis por competencias
@@ -431,67 +450,62 @@ const ImprovedDigitalSkillsEvaluation = () => {
                     onNext={handleNext}
                     onPrevious={handlePrevious}
                     onFinish={handleFinish}
-                    canGoBack={true}
-                    canGoNext={selectedAnswer !== null && !isQuestionBlocked}
-                    stepStatus={stepStatus}
-                    showStepper={true}
-                    showProgress={true}
                     selectedAnswer={selectedAnswer}
-                    showValidation={true}
                 />
 
-                {/* Área protegida con la pregunta */}
-                <Box sx={{ flex: 1, minHeight: 400 }}>
-                    <AntiCheatProtection
-                        onViolation={handleViolation}
-                        onBlocked={handleQuestionBlocked}
-                        isActive={hasStarted && !isEvaluationComplete}
-                        maxViolations={3}
-                        questionId={questions[currentStep]?.id}
-                        resetTrigger={currentStep}
-                    >
-                        <QuestionPresenter
-                            question={questions[currentStep]}
-                            currentQuestionIndex={currentStep}
-                            totalQuestions={questions.length}
-                            onAnswer={handleAnswer}
-                            onNext={handleNext}
-                            onPrevious={handlePrevious}
-                            canGoBack={true}
-                            selectedAnswer={selectedAnswer}
-                            onAnswerChange={handleAnswerChange}
-                            violations={violations}
-                            isBlocked={isQuestionBlocked}
-                            showValidation={true}
-                        />
-                    </AntiCheatProtection>
-                </Box>
+                {/* Alerta de violación */}
+                {violations > 0 && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        <WarningIcon sx={{ mr: 1 }} />
+                        ¡Advertencia! Has cambiado de ventana {violations} veces. Alerta de anti-trampa activada.
+                    </Alert>
+                )}
 
-                {/* Diálogo de confirmación para salir */}
+                {/* Alerta de pregunta bloqueada */}
+                {isQuestionBlocked && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        <BlockIcon sx={{ mr: 1 }} />
+                        ¡Pregunta bloqueada! Demasiadas violaciones detectadas. Avanzando a la siguiente pregunta...
+                    </Alert>
+                )}
+
+                {/* Presentador de preguntas */}
+                {currentQuestion && (
+                    <QuestionPresenter
+                        question={currentQuestion}
+                        selectedAnswer={selectedAnswer}
+                        onAnswerChange={handleAnswerChange}
+                        isBlocked={isQuestionBlocked}
+                    />
+                )}
+
+                {/* Protección anti-trampa */}
+                <AntiCheatProtection
+                    onViolation={handleViolation}
+                    onQuestionBlocked={handleQuestionBlocked}
+                    maxViolations={3} // Ejemplo: 3 violaciones antes de bloquear la pregunta
+                />
+
+                {/* Diálogo de salida (si aplica) */}
                 <Dialog
                     open={showExitDialog}
                     onClose={() => setShowExitDialog(false)}
-                    maxWidth="sm"
-                    fullWidth
+                    aria-labelledby="exit-dialog-title"
+                    aria-describedby="exit-dialog-description"
                 >
-                    <DialogTitle>Confirmar Salida</DialogTitle>
+                    <DialogTitle id="exit-dialog-title">{"¿Estás seguro de que quieres salir?"}</DialogTitle>
                     <DialogContent>
-                        <Typography>
-                            ¿Estás seguro de que quieres salir de la evaluación? Se perderá todo el progreso actual.
+                        <Typography id="exit-dialog-description">
+                            Si sales ahora, tu progreso en la evaluación se perderá.
                         </Typography>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setShowExitDialog(false)}>Cancelar</Button>
-                        <Button
-                            onClick={() => {
-                                setShowExitDialog(false);
-                                // Redirigir o resetear
-                                window.location.href = '/';
-                            }}
-                            color="error"
-                        >
-                            Salir
-                        </Button>
+                        <Button onClick={() => {
+                            setShowExitDialog(false);
+                            // Lógica para salir, por ejemplo, redirigir a la página de inicio
+                            // navigate('/homepage');
+                        }} autoFocus>Salir</Button>
                     </DialogActions>
                 </Dialog>
             </Container>
@@ -500,3 +514,5 @@ const ImprovedDigitalSkillsEvaluation = () => {
 };
 
 export default ImprovedDigitalSkillsEvaluation;
+
+

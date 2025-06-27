@@ -60,7 +60,7 @@ const DigitalCompetencesPage = () => {
     };
 
     loadData();
-  }, []);
+  }, [areaNumbers]);
 
   const handleAreaClick = (area) => {
     setSelectedArea(area);

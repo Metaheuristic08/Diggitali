@@ -673,7 +673,6 @@ export class QuestionsService {
     
     // Guardar la respuesta correcta original
     const originalCorrectAnswer = question.correctAnswer;
-    const originalCorrectText = question.alternatives[originalCorrectAnswer];
     
     // Crear array de alternativas con sus índices originales
     const alternativesWithIndex = question.alternatives.map((alt, index) => ({

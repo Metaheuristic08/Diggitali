@@ -58,3 +58,32 @@
 .get-started-btn:hover {
   background-color: #3665c2;
 }
+
+/* Estilos para el menú de usuario */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-email {
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.logout-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f;
+}
+

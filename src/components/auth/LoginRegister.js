@@ -1,191 +1,286 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, provider, db } from "../../services/firebase";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithPopup
-} from "firebase/auth";
+import { useAuth } from "../../context/AuthContext";
+import { 
+  registerWithEmail, 
+  loginWithEmail, 
+  loginWithGoogle, 
+  resetPassword 
+} from "../../services/authService";
+import { 
+  validateRegistrationForm, 
+  validateLoginForm, 
+  authValidation,
+  sanitizeInput 
+} from "../../utils/enhancedValidation";
+import { useErrorHandler } from "../../utils/errorHandling";
 import "../../styles/components/loginRegister.css";
 
 function LoginRegister() {
   const navigate = useNavigate();
+  const { currentUser, isLoading } = useAuth();
+  const { handleError } = useErrorHandler();
+  
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [country, setCountry] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    username: "",
+    age: "",
+    gender: "",
+    country: ""
+  });
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Estados para manejo de errores y loading
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  
+  // Estados para validaciones en tiempo real
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [fieldTouched, setFieldTouched] = useState({});
 
   useEffect(() => {
     document.title = isSignUp ? "Registrarse | Ladico" : "Iniciar Sesión | Ladico";
   }, [isSignUp]);
 
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (currentUser && !isLoading) {
+      navigate("/competencias");
+    }
+  }, [currentUser, isLoading, navigate]);
 
+  // Limpiar mensajes cuando cambia el modo
+  useEffect(() => {
+    setError("");
+    setSuccess("");
+    setFieldErrors({});
+    setFieldTouched({});
+  }, [isSignUp]);
+
+  // Función para manejar cambios en los campos
+  const handleInputChange = (field, value) => {
+    const sanitizedValue = typeof value === 'string' ? sanitizeInput(value) : value;
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: sanitizedValue
+    }));
+
+    // Validar en tiempo real si el campo ha sido tocado
+    if (fieldTouched[field]) {
+      validateField(field, sanitizedValue);
+    }
+  };
+
+  // Función para manejar cuando un campo pierde el foco
+  const handleFieldBlur = (field) => {
+    setFieldTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    validateField(field, formData[field]);
+  };
+
+  // Función para validar un campo individual
+  const validateField = (field, value) => {
+    let validation;
+    
+    switch (field) {
+      case 'email':
+        validation = authValidation.email(value);
+        break;
+      case 'password':
+        validation = authValidation.password(value, isSignUp);
+        break;
+      case 'username':
+        validation = authValidation.username(value);
+        break;
+      case 'age':
+        validation = authValidation.age(value);
+        break;
+      case 'gender':
+        validation = authValidation.gender(value);
+        break;
+      case 'country':
+        validation = authValidation.country(value);
+        break;
+      default:
+        return;
+    }
+
+    setFieldErrors(prev => ({
+      ...prev,
+      [field]: validation.isValid ? [] : validation.errors
+    }));
+  };
+
+  // Función para limpiar formularios
+  const clearForm = () => {
+    setFormData({
+      email: "",
+      password: "",
+      username: "",
+      age: "",
+      gender: "",
+      country: ""
+    });
+    setShowPassword(false);
+    setFieldErrors({});
+    setFieldTouched({});
+    setError("");
+    setSuccess("");
+  };
+
+  // Función para cambiar entre modos
+  const switchMode = (signUpMode) => {
+    setIsSignUp(signUpMode);
+    clearForm();
+  };
+
+  // Función para manejar el login
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    // Validaciones básicas
-    if (!email || !password) {
-      alert("Por favor, completa todos los campos.");
+    // Validar formulario completo
+    const validation = validateLoginForm({
+      email: formData.email,
+      password: formData.password
+    });
+
+    if (!validation.isValid) {
+      setError("Por favor, corrige los errores antes de continuar");
+      setFieldErrors(validation.errors);
       return;
     }
 
-    if (!email.includes('@')) {
-      alert("Por favor, ingresa un email válido.");
-      return;
-    }
+    setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/competencias");
-    } catch (error) {
-      console.error("Error de autenticación:", error);
-      let errorMessage = "Error al iniciar sesión";
-
-      switch (error.code) {
-        case 'auth/invalid-credential':
-          errorMessage = "Credenciales inválidas. Verifica tu email y contraseña.";
-          break;
-        case 'auth/user-not-found':
-          errorMessage = "No existe una cuenta con este email.";
-          break;
-        case 'auth/wrong-password':
-          errorMessage = "Contraseña incorrecta.";
-          break;
-        case 'auth/invalid-email':
-          errorMessage = "El formato del email no es válido.";
-          break;
-        case 'auth/user-disabled':
-          errorMessage = "Esta cuenta ha sido deshabilitada.";
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = "Demasiados intentos fallidos. Intenta más tarde.";
-          break;
-        default:
-          errorMessage = `Error: ${error.message}`;
+      const result = await loginWithEmail(formData.email, formData.password);
+      
+      if (result.success) {
+        setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
+        setTimeout(() => {
+          navigate("/competencias");
+        }, 1000);
+      } else {
+        setError(result.error);
       }
-
-      alert(errorMessage);
+    } catch (error) {
+      const errorInfo = handleError(error, { action: 'login', email: formData.email });
+      setError(errorInfo.userMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Función para manejar el registro
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    // Validar
+    // Validar formulario completo
+    const validation = validateRegistrationForm(formData);
 
-    if (!username || !email || !password || !age || !gender || !country) {
-      alert("Por favor, completa todos los campos.");
-      return;
-    }
-
-    if (!email.includes('@')) {
-      alert("Por favor, ingresa un email válido.");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
-    if (parseInt(age) < 13 || parseInt(age) > 120) {
-      alert("Por favor, ingresa una edad válida (13-120 años).");
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Guardar datos adicionales en Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        username,
-        email,
-        age,
-        gender,
-        country,
-        createdAt: new Date()
+    if (!validation.isValid) {
+      setError("Por favor, corrige los errores antes de continuar");
+      setFieldErrors(validation.errors);
+      
+      // Marcar todos los campos como tocados para mostrar errores
+      const allTouched = {};
+      Object.keys(formData).forEach(key => {
+        allTouched[key] = true;
       });
-
-      navigate("/competencias");
-
-    } catch (error) {
-      console.error("Error en el registro:", error);
-      let errorMessage = "Error al crear la cuenta";
-
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage = "Este email ya está registrado. Intenta iniciar sesión.";
-          break;
-        case 'auth/invalid-email':
-          errorMessage = "El formato del email no es válido.";
-          break;
-        case 'auth/weak-password':
-          errorMessage = "La contraseña debe tener al menos 6 caracteres.";
-          break;
-        case 'auth/operation-not-allowed':
-          errorMessage = "El registro con email/contraseña no está habilitado.";
-          break;
-        default:
-          errorMessage = `Error: ${error.message}`;
-      }
-
-      alert(errorMessage);
-    }
-  };
-
-  const handleClick = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-      navigate("/competencias");
-    } catch (error) {
-      console.error("Error en login con Google:", error);
-
-      if (error.code === "auth/popup-closed-by-user") {
-        console.log("El usuario cerró el popup sin iniciar sesión.");
-      } else if (error.code === "auth/popup-blocked") {
-        alert("El popup fue bloqueado por el navegador. Permite popups para este sitio.");
-      } else if (error.code === "auth/cancelled-popup-request") {
-        console.log("Solicitud de popup cancelada.");
-      } else {
-        alert(`Error al iniciar sesión con Google: ${error.message}`);
-      }
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      alert("Por favor, ingresa tu email en el campo primero.");
+      setFieldTouched(allTouched);
       return;
     }
+
+    setLoading(true);
+
     try {
-      await sendPasswordResetEmail(auth, email);
-      alert("Te hemos enviado un enlace para restablecer tu contraseña.");
-    } catch (error) {
-      console.error("Error al enviar email de recuperación:", error);
-      let errorMessage = "Error al enviar el email de recuperación";
-
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = "No existe una cuenta con este email.";
-          break;
-        case 'auth/invalid-email':
-          errorMessage = "El formato del email no es válido.";
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = "Demasiadas solicitudes. Intenta más tarde.";
-          break;
-        default:
-          errorMessage = `Error: ${error.message}`;
+      const result = await registerWithEmail(formData);
+      
+      if (result.success) {
+        setSuccess("¡Cuenta creada exitosamente! Redirigiendo...");
+        setTimeout(() => {
+          navigate("/competencias");
+        }, 1000);
+      } else {
+        setError(result.error);
+        if (result.details) {
+          setFieldErrors(result.details);
+        }
       }
+    } catch (error) {
+      const errorInfo = handleError(error, { action: 'register', email: formData.email });
+      setError(errorInfo.userMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      alert(errorMessage);
+  // Función para manejar login con Google
+  const handleGoogleLogin = async () => {
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const result = await loginWithGoogle();
+      
+      if (result.success) {
+        setSuccess("¡Inicio de sesión con Google exitoso! Redirigiendo...");
+        setTimeout(() => {
+          navigate("/competencias");
+        }, 1000);
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      const errorInfo = handleError(error, { action: 'googleLogin' });
+      setError(errorInfo.userMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para manejar recuperación de contraseña
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError("Por favor, ingresa tu email primero");
+      return;
+    }
+
+    const emailValidation = authValidation.email(formData.email);
+    if (!emailValidation.isValid) {
+      setError("Por favor, ingresa un email válido");
+      setFieldErrors({ email: emailValidation.errors });
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await resetPassword(formData.email);
+      
+      if (result.success) {
+        setSuccess("Te hemos enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.");
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      const errorInfo = handleError(error, { action: 'forgotPassword', email: formData.email });
+      setError(errorInfo.userMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -193,27 +288,52 @@ function LoginRegister() {
     navigate("/homepage");
   };
 
+  // Función para obtener el mensaje de error de un campo
+  const getFieldError = (field) => {
+    return fieldErrors[field] && fieldErrors[field].length > 0 ? fieldErrors[field][0] : "";
+  };
+
+  // Función para verificar si un campo tiene error
+  const hasFieldError = (field) => {
+    return fieldTouched[field] && fieldErrors[field] && fieldErrors[field].length > 0;
+  };
+
   return (
     <div className={`container ${isSignUp ? "sign-up-mode" : ""}`}>
       <div className="forms-container">
         <div className="signin-signup">
+          {/* Formulario de Login */}
           <form onSubmit={handleLogin} className="sign-in-form">
-            <img src="/img/ladico.png" alt="Logo LADICO" className="form-logo clickable-logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
+            <img 
+              src="/img/ladico.png" 
+              alt="Logo LADICO" 
+              className="form-logo clickable-logo" 
+              onClick={handleLogoClick} 
+              style={{ cursor: "pointer" }} 
+            />
             <h2 className="title">Bienvenido de nuevo</h2>
+
+            {/* Mensajes de error y éxito */}
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
 
             <div className="input-group">
               <label htmlFor="login-email">Dirección de correo electrónico</label>
               <div className="input-wrapper">
                 <i className="fas fa-user"></i>
                 <input
-                  type="text"
+                  type="email"
                   id="login-email"
                   placeholder="ej.: john.mcfly@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onBlur={() => handleFieldBlur('email')}
+                  className={hasFieldError('email') ? "error" : ""}
                   required
+                  disabled={loading}
                 />
               </div>
+              {hasFieldError('email') && <span className="field-error">{getFieldError('email')}</span>}
             </div>
 
             <div className="input-group">
@@ -223,54 +343,92 @@ function LoginRegister() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="login-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Ingresa tu contraseña"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onBlur={() => handleFieldBlur('password')}
+                  className={hasFieldError('password') ? "error" : ""}
                   required
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
                 >
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
+              {hasFieldError('password') && <span className="field-error">{getFieldError('password')}</span>}
             </div>
+
             <div className="forgot-password">
-              <button type="button" onClick={handleForgotPassword}>
+              <button 
+                type="button" 
+                onClick={handleForgotPassword}
+                disabled={loading}
+              >
                 ¿Olvidaste tu contraseña?
               </button>
             </div>
-            <input type="submit" value="Iniciar Sesión" className="btn solid" />
+
+            <input 
+              type="submit" 
+              value={loading ? "Iniciando sesión..." : "Iniciar Sesión"} 
+              className="btn solid" 
+              disabled={loading}
+            />
+
             <div className="google-login-container">
               <div className="separator">
                 <span>Inicia Sesión</span>
                 <span style={{ fontWeight: 400, color: "#777" }}>con</span>
               </div>
-              <button type="button" className="google-login-btn" onClick={handleClick}>
+              <button 
+                type="button" 
+                className="google-login-btn" 
+                onClick={handleGoogleLogin}
+                disabled={loading}
+              >
                 <img src="/img/google.png" alt="Google Logo" className="google-icon" />
                 <strong>Google</strong>
               </button>
             </div>
           </form>
 
+          {/* Formulario de Registro */}
           <form onSubmit={handleRegister} className="sign-up-form">
-            <img src="/img/ladico.png" alt="Logo LADICO" className="form-logo clickable-logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
+            <img 
+              src="/img/ladico.png" 
+              alt="Logo LADICO" 
+              className="form-logo clickable-logo" 
+              onClick={handleLogoClick} 
+              style={{ cursor: "pointer" }} 
+            />
             <h2 className="title">Inscribirse</h2>
 
+            {/* Mensajes de error y éxito */}
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+
             <div className="input-group">
-              <label htmlFor="register-username">Nombre</label>
+              <label htmlFor="register-username">Nombre completo</label>
               <div className="input-wrapper">
                 <i className="fas fa-user"></i>
                 <input
                   type="text"
                   id="register-username"
-                  placeholder="ej.: John"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="ej.: John Doe"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  onBlur={() => handleFieldBlur('username')}
+                  className={hasFieldError('username') ? "error" : ""}
                   required
+                  disabled={loading}
                 />
               </div>
+              {hasFieldError('username') && <span className="field-error">{getFieldError('username')}</span>}
             </div>
 
             <div className="input-group">
@@ -281,11 +439,15 @@ function LoginRegister() {
                   type="email"
                   id="register-email"
                   placeholder="ej.: john.mcfly@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onBlur={() => handleFieldBlur('email')}
+                  className={hasFieldError('email') ? "error" : ""}
                   required
+                  disabled={loading}
                 />
               </div>
+              {hasFieldError('email') && <span className="field-error">{getFieldError('email')}</span>}
             </div>
 
             <div className="inline-group">
@@ -297,11 +459,17 @@ function LoginRegister() {
                     type="number"
                     id="register-age"
                     placeholder="ej.: 25"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
+                    value={formData.age}
+                    onChange={(e) => handleInputChange('age', e.target.value)}
+                    onBlur={() => handleFieldBlur('age')}
+                    className={hasFieldError('age') ? "error" : ""}
+                    min="13"
+                    max="120"
                     required
+                    disabled={loading}
                   />
                 </div>
+                {hasFieldError('age') && <span className="field-error">{getFieldError('age')}</span>}
               </div>
 
               <div className="input-group">
@@ -310,16 +478,21 @@ function LoginRegister() {
                   <i className="fas fa-venus-mars"></i>
                   <select
                     id="register-gender"
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
+                    value={formData.gender}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                    onBlur={() => handleFieldBlur('gender')}
+                    className={hasFieldError('gender') ? "error" : ""}
                     required
+                    disabled={loading}
                   >
                     <option value="">Selecciona...</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Femenino">Femenino</option>
+                    <option value="No binario">No binario</option>
                     <option value="Prefiero no decirlo">Prefiero no decirlo</option>
                   </select>
                 </div>
+                {hasFieldError('gender') && <span className="field-error">{getFieldError('gender')}</span>}
               </div>
 
               <div className="input-group">
@@ -330,11 +503,15 @@ function LoginRegister() {
                     type="text"
                     id="register-country"
                     placeholder="ej.: Chile"
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
+                    value={formData.country}
+                    onChange={(e) => handleInputChange('country', e.target.value)}
+                    onBlur={() => handleFieldBlur('country')}
+                    className={hasFieldError('country') ? "error" : ""}
                     required
+                    disabled={loading}
                   />
                 </div>
+                {hasFieldError('country') && <span className="field-error">{getFieldError('country')}</span>}
               </div>
             </div>
 
@@ -345,21 +522,32 @@ function LoginRegister() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="register-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres, incluye mayúscula, minúscula y número"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onBlur={() => handleFieldBlur('password')}
+                  className={hasFieldError('password') ? "error" : ""}
                   required
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
                 >
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
+              {hasFieldError('password') && <span className="field-error">{getFieldError('password')}</span>}
             </div>
 
-            <input type="submit" className="btn" value="Crear Cuenta" />
+            <input 
+              type="submit" 
+              className="btn" 
+              value={loading ? "Creando cuenta..." : "Crear Cuenta"} 
+              disabled={loading}
+            />
           </form>
         </div>
       </div>
@@ -367,23 +555,31 @@ function LoginRegister() {
       <div className="panels-container">
         <div className="panel left-panel">
           <div className="content">
-            <h3>¿ Nuevo en la página ?</h3>
-            <p>¡Crea tu cuenta en pocos segundos!</p>
-            <button className="btn transparent" onClick={() => setIsSignUp(true)}>
+            <h3>¿Nuevo en la página?</h3>
+            <p>¡Crea tu cuenta en pocos segundos y comienza a evaluar tus competencias digitales!</p>
+            <button 
+              className="btn transparent" 
+              onClick={() => switchMode(true)}
+              disabled={loading}
+            >
               Registrarse
             </button>
           </div>
-          <img src="/img/imagen.png" className="image" alt="Log" />
+          <img src="/img/imagen.png" className="image" alt="Registro" />
         </div>
         <div className="panel right-panel">
           <div className="content">
-            <h3>Ya eres parte de nosotros ?</h3>
-            <p>Si ya tienes una cuenta, inicia sesión aquí.</p>
-            <button className="btn transparent" onClick={() => setIsSignUp(false)}>
-              Acceso
+            <h3>¿Ya eres parte de nosotros?</h3>
+            <p>Si ya tienes una cuenta, inicia sesión aquí y continúa con tu evaluación.</p>
+            <button 
+              className="btn transparent" 
+              onClick={() => switchMode(false)}
+              disabled={loading}
+            >
+              Iniciar Sesión
             </button>
           </div>
-          <img src="/img/imagen.png" className="image" alt="Register" />
+          <img src="/img/imagen.png" className="image" alt="Login" />
         </div>
       </div>
     </div>
@@ -391,3 +587,4 @@ function LoginRegister() {
 }
 
 export default LoginRegister;
+

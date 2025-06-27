@@ -1,80 +1,108 @@
 import React from 'react';
-import '../../styles/components/CompetenceCard.css';
 import { useNavigate } from 'react-router-dom';
+import '../../styles/components/CompetenceCard.css';
 
-
-
-function CompetenceCard({ title = "Developing text documents", category = "CREACIÓN DE CONTENIDOS DIGITALES", level = 0 }) {
+function CompetenceCard({ competence, areaNumber, index, color }) {
   const navigate = useNavigate();
-  const progressDegrees = level * 360;
+  // Por defecto, nivel no alcanzado
+  const level = competence.userLevel || 0;
+  const progressDegrees = level > 0 ? level * 120 : 0; // 0-3 niveles, 120 grados por nivel
 
-  const categoryColors = {
-    "INFORMATION AND DATA": "linear-gradient(180deg, #00a8e8 0%, #007ea7 100%)",
-    "COMMUNICATION AND COLLABORATION": "linear-gradient(180deg, #a066b0 0%, #844d9e 100%)",
-    "CONTENT CREATION": "linear-gradient(180deg, #ff7e29 0%, #e65100 100%)",
-    "SECURITY": "linear-gradient(180deg, #88b04b 0%, #618833 100%)",
-    "PROBLEM SOLVING": "linear-gradient(180deg, #f25c54 0%, #d64541 100%)",
+  // Mapeo de colores según el área
+  const colorMap = {
+    'blue': { gradient: 'linear-gradient(180deg, #00a8e8 0%, #007ea7 100%)', stroke: '#00a8e8' },
+    'green': { gradient: 'linear-gradient(180deg, #27ae60 0%, #229954 100%)', stroke: '#27ae60' },
+    'orange': { gradient: 'linear-gradient(180deg, #ff7e29 0%, #e65100 100%)', stroke: '#ff7e29' },
+    'red': { gradient: 'linear-gradient(180deg, #e53935 0%, #c62828 100%)', stroke: '#e53935' },
+    'purple': { gradient: 'linear-gradient(180deg, #8e24aa 0%, #6a1b9a 100%)', stroke: '#8e24aa' }
   };
 
-  const categoryMap = {
-    "BÚSQUEDA Y GESTIÓN DE INFORMACIÓN Y DATOS": "INFORMATION AND DATA",
-    "COMUNICACIÓN Y COLABORACIÓN": "COMMUNICATION AND COLLABORATION",
-    "CREACIÓN DE CONTENIDOS DIGITALES": "CONTENT CREATION",
-    "SEGURIDAD": "SECURITY",
-    "RESOLUCIÓN DE PROBLEMAS": "PROBLEM SOLVING"
-  };
-
-  const resolvedCategory = categoryMap[category.toUpperCase()] || category.toUpperCase();
-  const backgroundStyle = categoryColors[resolvedCategory] || '#ccc';
+  const colorStyle = colorMap[color] || { gradient: '#ccc', stroke: '#19a8f8' };
 
   const handleClick = () => {
-    navigate('/evaluacion-digital');
+    // Almacenar información de la competencia seleccionada en sessionStorage para recuperarla en la evaluación
+    sessionStorage.setItem('selectedCompetence', JSON.stringify(competence));
+    navigate('/evaluacion-mejorada');
+  };
+
+  // Truncar el nombre si es demasiado largo
+  const truncateName = (name) => {
+    return name.length > 50 ? name.substring(0, 47) + '...' : name;
   };
 
   return (
-    <div className="card-container">
-      <div
-        className="card-header"
-        style={{ background: backgroundStyle }}
-      >
-        <p className="category">{category}</p>
-        <h3 className="card-title">{title}</h3>
-      </div>
-
-      <div className="card-body">
-        <div className="progress-circle">
-          <svg width="100" height="100">
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke="#d3d6dd"
-              strokeWidth="6"
-              fill="none"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke="#19a8f8"
-              strokeWidth="6"
-              fill="none"
-              strokeDasharray={`${progressDegrees} ${360}`}
-              strokeDashoffset="90"
-              transform="rotate(-90 50 50)"
-            />
-          </svg>
-          <p className="level-label">LEVEL</p>
-          <p className="level-value">–</p>
+    <div className={`competence-card-container ${color}`}>
+      <div className="competence-card-cylinder animate__animated animate__fadeIn">
+        <div className="competence-card-top">
+          <div className="competence-category-wrapper">
+            <p className="competence-category">{competence.category}</p>
+            <span className="competence-number-badge">{areaNumber}.{index + 1}</span>
+          </div>
+          
+          {competence.questionCount > 0 && (
+            <div className="questions-count-badge">
+              <span className="questions-icon">❓</span>
+              <span className="questions-number">{competence.questionCount}</span>
+            </div>
+          )}
         </div>
-
-        <button className="resume-button" onClick={handleClick}>
-          {level === 0 ? "Comenzar" : "Resumir"}
-        </button>
+        
+        <div className="competence-card-body">
+          <h3 className="competence-title">
+            {truncateName(competence.name)}
+          </h3>
+          
+          <div className="competence-level">
+            <div className="level-circle">
+              <svg width="80" height="80">
+                {/* Círculo de fondo */}
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="35"
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeWidth="5"
+                  fill="none"
+                />
+                {/* Círculo de progreso */}
+                {progressDegrees > 0 && (
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="35"
+                    stroke="rgba(255, 255, 255, 0.9)"
+                    strokeWidth="5"
+                    fill="none"
+                    strokeDasharray={`${progressDegrees} ${360}`}
+                    strokeDashoffset="90"
+                    transform="rotate(-90 40 40)"
+                  />
+                )}
+              </svg>
+              <div className="level-indicator">
+                <span className="level-text">NIVEL</span>
+                <span className="level-value">{level > 0 ? level : '–'}</span>
+              </div>
+            </div>
+          </div>
+          
+          {level > 0 && (
+            <div className="level-label">
+              {level === 1 ? 'Nivel Básico' : 
+               level === 2 ? 'Nivel Intermedio' : 'Nivel Avanzado'}
+            </div>
+          )}
+        </div>
+        
+        <div className="competence-card-bottom">
+          <button className="start-button" onClick={handleClick}>
+            {level === 0 ? "Comenzar" : "Continuar"}
+            <span className="button-icon">➤</span>
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
 
 export default CompetenceCard;
