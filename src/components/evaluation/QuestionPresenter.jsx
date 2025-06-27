@@ -103,37 +103,62 @@ const QuestionPresenter = ({
             Selecciona la respuesta correcta:
           </Typography>
           
+          {/* Depuración solo visible en desarrollo */}
+          {process.env.NODE_ENV === 'development' && !question.alternatives && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              No se encontraron alternativas para esta pregunta. Revisar estructura de datos.
+            </Alert>
+          )}
+
+          {/* Información de depuración para ver formato de la pregunta */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.100', borderRadius: 2, fontSize: '0.8rem', display: 'none' }}>
+              <Typography variant="caption">Datos de la pregunta (desarrollo):</Typography>
+              <pre>{JSON.stringify(question, null, 2)}</pre>
+            </Box>
+          )}
+          
           <RadioGroup
             value={selectedAnswer !== null ? selectedAnswer : ''}
             onChange={handleAnswerSelection}
             sx={{ mt: 2 }}
           >
-            {question.alternatives && question.alternatives.map((alternative, index) => (
-              <FormControlLabel
-                key={index}
-                value={index}
-                control={<Radio />}
-                label={
-                  <Typography variant="body1" sx={{ py: 1 }}>
-                    {typeof alternative === 'string' ? alternative : alternative.text || alternative}
-                  </Typography>
-                }
-                sx={{
-                  mb: 1,
-                  p: 1,
-                  border: '1px solid transparent',
-                  borderRadius: 2,
-                  '&:hover': {
-                    bgcolor: 'grey.50',
-                    borderColor: 'grey.300'
-                  },
-                  ...(selectedAnswer === index && {
-                    bgcolor: 'primary.50',
-                    borderColor: 'primary.main'
-                  })
-                }}
-              />
-            ))}
+            {question.alternatives && Array.isArray(question.alternatives) && question.alternatives.length > 0 ? (
+              question.alternatives.map((alternative, index) => (
+                <FormControlLabel
+                  key={index}
+                  value={index}
+                  control={<Radio />}
+                  label={
+                    <Typography variant="body1" sx={{ py: 1 }}>
+                      {typeof alternative === 'string' 
+                        ? alternative 
+                        : (alternative && typeof alternative === 'object' && alternative.text) 
+                          ? alternative.text 
+                          : `Alternativa ${index + 1}`}
+                    </Typography>
+                  }
+                  sx={{
+                    mb: 1,
+                    p: 1,
+                    border: '1px solid transparent',
+                    borderRadius: 2,
+                    '&:hover': {
+                      bgcolor: 'grey.50',
+                      borderColor: 'grey.300'
+                    },
+                    ...(selectedAnswer === index && {
+                      bgcolor: 'primary.50',
+                      borderColor: 'primary.main'
+                    })
+                  }}
+                />
+              ))
+            ) : (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                NO SE VISUALIZAN LAS ALTERNATIVAS!!!!!!!!!
+              </Alert>
+            )}
           </RadioGroup>
         </Box>
 

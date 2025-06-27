@@ -74,6 +74,30 @@ const ImprovedDigitalSkillsEvaluation = () => {
                     'Básico 1'  // Nivel básico
                 );
 
+                console.log('Evaluación inicializada - estructura de una pregunta:', 
+                    evaluationData.questions.length > 0 
+                        ? JSON.stringify(evaluationData.questions[0], null, 2) 
+                        : 'No hay preguntas');
+
+                // Verificar que las preguntas tengan alternativas
+                evaluationData.questions = evaluationData.questions.map(question => {
+                    if (!question.alternatives || !Array.isArray(question.alternatives) || question.alternatives.length === 0) {
+                        console.error('Pregunta sin alternativas válidas:', question);
+                        // Agregar alternativas de emergencia si no existen
+                        return {
+                            ...question,
+                            alternatives: question.options || question.answers || [
+                                'Alternativa 1 (generada)',
+                                'Alternativa 2 (generada)',
+                                'Alternativa 3 (generada)',
+                                'Alternativa 4 (generada)'
+                            ],
+                            correctAnswer: question.correctAnswer || 0
+                        };
+                    }
+                    return question;
+                });
+
                 // setEvaluation(evaluationData); // Comentado ya que no se usa
                 setQuestions(evaluationData.questions); // Establecer las preguntas
                 setCurrentQuestion(evaluationData.questions[0]);

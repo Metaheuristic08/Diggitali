@@ -97,22 +97,59 @@ export class EvaluationController {
         // Seleccionar 3 preguntas aleatoriamente
         questions = this.shuffleArray(questions).slice(0, 3);
         console.log('✅ Preguntas básicas obtenidas');
-        return questions;
+      } else {
+        // Fallback: buscar por dimensiones específicas
+        questions = await QuestionsService.getQuestionsByLevelAndDimensions(level, dimensions, 3);
+
+        if (questions.length >= 3) {
+          console.log('✅ Preguntas por dimensión obtenidas');
+          questions = questions.slice(0, 3);
+        } else {
+          // Último fallback: obtener cualquier pregunta disponible
+          const allQuestions = await QuestionsService.getEvaluationQuestions(1);
+          questions = allQuestions.slice(0, 3);
+          console.log(`⚠️ Usando fallback: ${questions.length} preguntas`);
+        }
       }
-
-      // Fallback: buscar por dimensiones específicas
-      questions = await QuestionsService.getQuestionsByLevelAndDimensions(level, dimensions, 3);
-
-      if (questions.length >= 3) {
-        console.log('✅ Preguntas por dimensión obtenidas');
-        return questions.slice(0, 3);
-      }
-
-      // Último fallback: obtener cualquier pregunta disponible
-      const allQuestions = await QuestionsService.getEvaluationQuestions(1);
-      questions = allQuestions.slice(0, 3);
-
-      console.log(`⚠️ Usando fallback: ${questions.length} preguntas`);
+      
+      // Verificar y corregir formato de las preguntas
+      questions = questions.map(question => {
+        // Agregar propiedad 'alternatives' si no existe o está vacía
+        if (!question.alternatives || !Array.isArray(question.alternatives) || question.alternatives.length === 0) {
+          console.warn(`⚠️ Pregunta sin alternativas: ${question.id || 'Sin ID'}`);
+          
+          // Intentar obtener alternativas de otros campos como options o answers
+          const altCandidates = question.options || question.answers || [];
+          
+          if (altCandidates.length > 0) {
+            question.alternatives = [...altCandidates];
+            console.log(`✅ Alternativas recuperadas de campo alternativo: ${altCandidates.length} opciones`);
+          } else {
+            // Si no hay alternativas, crear unas predeterminadas
+            question.alternatives = [
+              'Alternativa 1',
+              'Alternativa 2',
+              'Alternativa 3',
+              'Alternativa 4'
+            ];
+            question.correctAnswer = 0; // Establecer la primera como correcta por defecto
+            console.log(`⚠️ Agregadas alternativas generadas para pregunta: ${question.id || 'Sin ID'}`);
+          }
+        }
+        
+        // Verificar que correctAnswer sea un número válido
+        if (question.correctAnswer === undefined || 
+            question.correctAnswer === null || 
+            isNaN(question.correctAnswer) ||
+            question.correctAnswer < 0 || 
+            question.correctAnswer >= question.alternatives.length) {
+          console.warn(`⚠️ correctAnswer inválido en pregunta ${question.id || 'Sin ID'}, usando 0 como predeterminado`);
+          question.correctAnswer = 0;
+        }
+        
+        return question;
+      });
+      
       return questions;
 
     } catch (error) {
