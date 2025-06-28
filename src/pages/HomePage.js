@@ -32,7 +32,7 @@ function HomePage() {
               <span className="btn-icon">🚀</span>
               Comenzar Evaluación Gratuita
             </Link>
-            <Link to="/competencias-digitales" className="btn-secondary">
+            <Link to="/competencias" className="btn-secondary">
               <span className="btn-icon">📚</span>
               Explorar Competencias
             </Link>

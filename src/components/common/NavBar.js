@@ -19,18 +19,16 @@ function Navbar() {
       <div className="navbar-logo">
         {/* Usamos una imagen en lugar del texto */}
         <Link to="/homepage">
-          <img 
-            src="/img/ladico.png" 
-            alt="LADICO" 
+          <img
+            src="/img/ladico.png"
+            alt="LADICO"
             className="navbar-logo-image"
           />
         </Link>
       </div>
       <ul className="navbar-links">
         <li><Link to="/homepage">Inicio</Link></li>
-        <li><Link to="/competencias-digitales">Competencias</Link></li>
-        <li><Link to="/evaluacion-digital">Evaluación</Link></li>
-        <li><Link to="/generador-items">Generador</Link></li>
+        <li><Link to="/competencias">Competencias</Link></li>
       </ul>
       <div className="navbar-button">
         {currentUser ? (

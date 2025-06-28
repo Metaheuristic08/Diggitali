@@ -23,7 +23,7 @@ function App() {
             element={<Competencias />} 
           />
           <Route 
-            path="/competencias-digitales" 
+            path="/competencias" 
             element={
               <ProtectedRoute>
                 <DigitalCompetencesPage />

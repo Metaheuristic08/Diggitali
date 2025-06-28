@@ -1,6 +1,0 @@
-el stack que llevo de tecnologias es
-node.js
-firebase Authentication y firestore 
-ReactJS
-React Router DOM
-CSS

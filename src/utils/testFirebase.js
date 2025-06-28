@@ -6,8 +6,9 @@ console.log('🔍 Verificando configuración de Firebase...');
 try {
   // Intentar inicializar Firebase Admin
   if (!admin.apps.length) {
-    admin.initializeApp({
+    admin.initializeApp({ 
       projectId: "ludico-backend",
+      credential: admin.credential.applicationDefault()
     });
     console.log('✅ Firebase Admin inicializado correctamente');
   } else {

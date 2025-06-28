@@ -1,0 +1,668 @@
+[
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Renovación de DNI en Perú",
+        "scenario": "Eres un hombre peruano de 28 años que necesita renovar su DNI porque lo perdió. Quieres saber cómo hacer el trámite en línea.",
+        "options": [
+            "Opción A: Buscar: \"renovación DNI Perú portal oficial\"",
+            "Opción B: Escribir: \"cómo conseguir identificación en Lima\"",
+            "Opción C: Consultar en un grupo de WhatsApp de vecinos",
+            "Opción D: Ir directamente a la comisaría sin buscar información"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Usar términos específicos como \"portal oficial\" te lleva directamente al sitio del RENIEC.",
+            "incorrect": "Para trámites documentales, usa palabras clave precisas y busca siempre fuentes oficiales."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Pago de predial en México",
+        "scenario": "Eres una mujer mexicana de 40 años que necesita pagar el impuesto predial de su casa antes de la fecha límite.",
+        "options": [
+            "Opción A: Buscar: \"pago predial en línea [nombre de tu estado] sitio oficial\"",
+            "Opción B: Escribir: \"impuestos de propiedad\"",
+            "Opción C: Publicar en Twitter preguntando cómo pagar",
+            "Opción D: Esperar a que llegue el recibo físico por correo"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Especificar tu estado y \"sitio oficial\" garantiza encontrar el portal correcto.",
+            "incorrect": "Recuerda incluir tu ubicación y términos oficiales para trámites municipales."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Matrícula universitaria en Colombia",
+        "scenario": "Eres un estudiante colombiano de 19 años que necesita matricularse en línea para el próximo semestre.",
+        "options": [
+            "Opción A: Buscar: \"matrícula en línea [nombre de tu universidad] portal estudiante\"",
+            "Opción B: Escribir: \"cómo inscribirme en la universidad\"",
+            "Opción C: Revisar historias de Instagram de compañeros",
+            "Opción D: Esperar a que la universidad envíe un email"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Incluir el nombre de tu institución y \"portal estudiante\" lleva al sitio adecuado.",
+            "incorrect": "Para trámites educativos, usa el nombre oficial de la institución en tu búsqueda."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Solicitud de citas médicas en Chile",
+        "scenario": "Eres una mujer chilena de 32 años que necesita agendar una cita con un especialista en el sistema público.",
+        "options": [
+            "Opción A: Buscar: \"agendar hora médica Fonasa en línea\"",
+            "Opción B: Escribir: \"cómo ver al médico rápido\"",
+            "Opción C: Pedir recomendaciones en un foro de Facebook",
+            "Opción D: Llamar por teléfono durante horas pico"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Perfecto! Especificar \"Fonasa\" y \"en línea\" dirige al portal correcto.",
+            "incorrect": "Para trámites de salud, incluye el nombre del sistema de salud en tu búsqueda."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Renovación de pasaporte en Argentina",
+        "scenario": "Eres un hombre argentino de 45 años que necesita renovar su pasaporte para un viaje urgente.",
+        "options": [
+            "Opción A: Buscar: \"renovación pasaporte argentino trámite en línea\"",
+            "Opción B: Escribir: \"documentos para viajar\"",
+            "Opción C: Preguntar en un grupo de Telegram de viajeros",
+            "Opción D: Visitar la cancillería sin cita previa"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! Los términos específicos llevan al portal oficial del Registro del Pasaporte.",
+            "incorrect": "Trámites migratorios requieren búsquedas precisas con nombres oficiales."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Declaración de renta en Colombia",
+        "scenario": "Eres una contadora colombiana de 38 años que necesita presentar la declaración de renta por primera vez.",
+        "options": [
+            "Opción A: Buscar: \"declaración renta DIAN en línea\"",
+            "Opción B: Escribir: \"impuestos anuales Colombia\"",
+            "Opción C: Buscar tutoriales en YouTube sin verificar fuentes",
+            "Opción D: Contratar a un gestor sin investigar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Incluir \"DIAN\" asegura encontrar el portal tributario oficial.",
+            "incorrect": "Para trámites fiscales, usa siempre el nombre del organismo recaudador."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Licencia de conducir en Brasil",
+        "scenario": "Eres un brasileño de 22 años que necesita sacar su primera licencia de conducir (CNH).",
+        "options": [
+            "Opción A: Buscar: \"primeira CNH digital [nombre de tu estado]\"",
+            "Opción B: Escribir: \"como tirar carteira de motorista\"",
+            "Opción C: Consultar perfiles de autoescolas en Instagram",
+            "Opción D: Pedirle a un amigo que te lleve al Detran"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Perfecto! Especificar \"digital\" y tu estado lleva al sitio correcto del Detran.",
+            "incorrect": "Trámites vehiculares varían por estado - incluye siempre tu ubicación."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Pensión alimenticia en Chile",
+        "scenario": "Eres una madre chilena de 29 años que necesita iniciar el trámite de pensión alimenticia.",
+        "options": [
+            "Opción A: Buscar: \"solicitud pensión alimenticia Chile en línea\"",
+            "Opción B: Escribir: \"ayuda para madres solteras\"",
+            "Opción C: Preguntar en comunidades de padres en Facebook",
+            "Opción D: Asistir a los tribunales sin información previa"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Los términos legales precisos llevan al portal del Poder Judicial.",
+            "incorrect": "Para trámites legales, usa la denominación oficial del proceso."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Registro de propiedad en Perú",
+        "scenario": "Eres un peruano de 50 años que necesita consultar el registro de propiedad de su vivienda.",
+        "options": [
+            "Opción A: Buscar: \"consultar registro propiedad SUNARP en línea\"",
+            "Opción B: Escribir: \"titulo de mi casa\"",
+            "Opción C: Buscar asesorías en Marketplace de Facebook",
+            "Opción D: Visitar notarías sin cita"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! SUNARP es la institución específica para este trámite.",
+            "incorrect": "Trámites notariales requieren el nombre exacto del organismo responsable."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Cita para visa española en México",
+        "scenario": "Eres un mexicano de 35 años que necesita sacar cita para solicitar visa Schengen.",
+        "options": [
+            "Opción A: Buscar: \"cita visa España México portal oficial\"",
+            "Opción B: Escribir: \"viajar a Europa documentos\"",
+            "Opción C: Revisar blogs de viajes no actualizados",
+            "Opción D: Llamar a agencias de viajes comerciales"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! La combinación país-origen-destino lleva al consulado correcto.",
+            "incorrect": "Trámites consulares requieren especificar ambos países involucrados."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Certificado de antecedentes en Argentina",
+        "scenario": "Eres una mujer argentina de 26 años que necesita un certificado de antecedentes penales para un trabajo.",
+        "options": [
+            "Opción A: Buscar: \"certificado antecedentes argentina trámite online\"",
+            "Opción B: Escribir: \"documentos para trabajo\"",
+            "Opción C: Pedir ayuda en grupos de empleo en WhatsApp",
+            "Opción D: Ir al Ministerio de Justicia sin verificar requisitos"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! El término \"trámite online\" filtra resultados digitales.",
+            "incorrect": "Documentos legales requieren búsquedas con su nombre oficial completo."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Inscripción escolar en Ecuador",
+        "scenario": "Eres un padre ecuatoriano de 33 años que necesita inscribir a su hijo en primaria pública.",
+        "options": [
+            "Opción A: Buscar: \"inscripción escolar en línea [provincia] Ministerio de Educación\"",
+            "Opción B: Escribir: \"escuelas para niños\"",
+            "Opción C: Consultar redes sociales de colegios privados",
+            "Opción D: Visitar escuelas al azar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Incluir la provincia y ministerio lleva al sistema oficial \"Sistema de Matrícula\".",
+            "incorrect": "Trámites educativos públicos requieren especificar ubicación y nivel."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Denuncia de servicios públicos en Colombia",
+        "scenario": "Eres una colombiana de 42 años que necesita reportar una falla en el servicio de acueducto.",
+        "options": [
+            "Opción A: Buscar: \"reportar falla acueducto [nombre empresa] portal\"",
+            "Opción B: Escribir: \"no tengo agua\"",
+            "Opción C: Publicar queja en Twitter etiquetando al alcalde",
+            "Opción D: Esperar a que se solucione solo"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Identificar la empresa prestadora agiliza la solución.",
+            "incorrect": "Para servicios públicos, incluye siempre el nombre de la empresa operadora."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Licencia de conducir internacional en México",
+        "scenario": "Eres un mexicano de 30 años que necesita obtener una licencia internacional para viajar.",
+        "options": [
+            "Opción A: Buscar: \"licencia internacional México SCT trámite en línea\"",
+            "Opción B: Escribir: \"permiso para manejar en el extranjero\"",
+            "Opción C: Buscar ofertas en grupos de viajes",
+            "Opción D: Sacar cita en la embajada del país destino"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! SCT es la institución responsable de este trámite.",
+            "incorrect": "Documentos internacionales requieren incluir el organismo emisor nacional."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Permiso de paternidad en Uruguay",
+        "scenario": "Eres un uruguayo de 31 años que necesita solicitar su permiso de paternidad laboral.",
+        "options": [
+            "Opción A: Buscar: \"solicitar permiso paternidad BPS en línea\"",
+            "Opción B: Escribir: \"días libres por nacimiento\"",
+            "Opción C: Consultar con compañeros de trabajo",
+            "Opción D: Hablar directamente con recursos humanos"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! BPS es la institución encargada de estos beneficios.",
+            "incorrect": "Derechos laborales requieren identificar el organismo de seguridad social."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Certificado de vacunación en Panamá",
+        "scenario": "Eres una mujer panameña de 25 años que necesita su certificado internacional de vacunación COVID para viajar.",
+        "options": [
+            "Opción A: Buscar: \"certificado vacunación COVID Panamá portal Minsa\"",
+            "Opción B: Escribir: \"papeles para viajar con vacunas\"",
+            "Opción C: Revisar el carné físico de vacunación",
+            "Opción D: Ir al centro de salud más cercano"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Minsa es el Ministerio de Salud responsable.",
+            "incorrect": "Documentos sanitarios requieren identificar la autoridad de salud."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Cambio de domicilio en Chile",
+        "scenario": "Eres un chileno de 27 años que acaba de mudarse y necesita actualizar su domicilio en registros oficiales.",
+        "options": [
+            "Opción A: Buscar: \"cambio domicilio Registro Civil Chile en línea\"",
+            "Opción B: Escribir: \"actualizar mi dirección\"",
+            "Opción C: Preguntar al nuevo vecindario",
+            "Opción D: Esperar a que servicios básicos actualicen datos"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! El Registro Civil centraliza estos trámites.",
+            "incorrect": "Cambios de datos personales requieren identificación del organismo registrador."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Constancia de estudios en Venezuela",
+        "scenario": "Eres una venezolana de 23 años que necesita una constancia de estudios universitarios para un empleo.",
+        "options": [
+            "Opción A: Buscar: \"constancia estudios [universidad] sistema en línea\"",
+            "Opción B: Escribir: \"documentos de la universidad\"",
+            "Opción C: Contactar profesores por correo personal",
+            "Opción D: Ir personalmente a secretaría académica"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! Incluir el nombre de tu universidad es fundamental.",
+            "incorrect": "Trámites académicos requieren identificación precisa de la institución."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Reporte de pérdida de celular en Perú",
+        "scenario": "Eres un peruano de 29 años al que le robaron su teléfono y necesitas bloquear el IMEI.",
+        "options": [
+            "Opción A: Buscar: \"bloquear IMEI Perú MTC portal\"",
+            "Opción B: Escribir: \"celular robado qué hacer\"",
+            "Opción C: Publicar en redes sociales para alertar",
+            "Opción D: Comprar otro equipo inmediatamente"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! MTC es el ministerio encargado de telecomunicaciones.",
+            "incorrect": "Reportes técnicos requieren identificar al regulador del sector."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Credencial de discapacidad en México",
+        "scenario": "Eres una mexicana de 48 años que necesita obtener credencial de discapacidad para acceder a beneficios.",
+        "options": [
+            "Opción A: Buscar: \"credencial discapacidad DIF trámite digital\"",
+            "Opción B: Escribir: \"ayuda para personas con discapacidad\"",
+            "Opción C: Consultar asociaciones no gubernamentales",
+            "Opción D: Pedir cita con médico especialista"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! DIF es el sistema nacional para estos trámites.",
+            "incorrect": "Documentos de certificación requieren identificar la entidad pública competente."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Permiso de mascota en Argentina",
+        "scenario": "Eres un argentino de 34 años que adopta un perro y necesita el permiso municipal.",
+        "options": [
+            "Opción A: Buscar: \"registro mascotas [ciudad] municipio online\"",
+            "Opción B: Escribir: \"papeles para perros\"",
+            "Opción C: Preguntar en la veterinaria",
+            "Opción D: Esperar campaña de vacunación"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Trámites municipales requieren especificar tu localidad.",
+            "incorrect": "Regulaciones locales varían por municipio - incluye siempre tu ciudad."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Renovación de cédula en Costa Rica",
+        "scenario": "Eres una costarricense de 21 años que debe renovar su cédula de identidad por primera vez.",
+        "options": [
+            "Opción A: Buscar: \"renovación cédula TSE cita previa\"",
+            "Opción B: Escribir: \"documento de identidad nuevo\"",
+            "Opción C: Verificar fechas en cuentas de redes sociales",
+            "Opción D: Ir al registro civil sin cita"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! TSE es el Tribunal Supremo Electoral responsable.",
+            "incorrect": "Documentos de identificación requieren el nombre oficial del emisor."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Certificado de nacimiento en República Dominicana",
+        "scenario": "Eres un dominicano de 55 años que necesita una copia certificada de su acta de nacimiento.",
+        "options": [
+            "Opción A: Buscar: \"certificado nacimiento Junta Central Electoral digital\"",
+            "Opción B: Escribir: \"partida de nacimiento\"",
+            "Opción C: Contactar la iglesia donde fue bautizado",
+            "Opción D: Visitar oficinas de registro"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! La JCE es la entidad encargada del registro civil.",
+            "incorrect": "Documentos vitales requieren identificar la autoridad registradora."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Licencia de construcción en Colombia",
+        "scenario": "Eres una arquitecta colombiana de 37 años que necesita la licencia para una remodelación.",
+        "options": [
+            "Opción A: Buscar: \"licencia construcción [municipio] curaduría urbana\"",
+            "Opción B: Escribir: \"permiso para construir\"",
+            "Opción C: Consultar grupos de constructores en Facebook",
+            "Opción D: Iniciar obra sin permiso"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Las curadurías urbanas son responsables municipales.",
+            "incorrect": "Trámites de construcción requieren especificar tu localidad exacta."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Pago de multas de tránsito en Chile",
+        "scenario": "Eres un chileno de 43 años que recibió una multa y quiere pagarla con descuento por pronto pago.",
+        "options": [
+            "Opción A: Buscar: \"pagar multa tránsito Chile portal municipio\"",
+            "Opción B: Escribir: \"multa de carabineros\"",
+            "Opción C: Revisar aplicaciones de tráfico comerciales",
+            "Opción D: Esperar notificación postal"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Identificar el municipio es clave pues las multas son locales.",
+            "incorrect": "Infracciones de tránsito dependen de la municipalidad donde ocurrieron."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Permiso para eventos en Argentina",
+        "scenario": "Eres una productora argentina de 30 años que necesita permiso para un evento cultural en espacio público.",
+        "options": [
+            "Opción A: Buscar: \"permiso eventos culturales GCBA trámite online\"",
+            "Opción B: Escribir: \"organizar fiesta en parque\"",
+            "Opción C: Consultar experiencias en grupos de eventos",
+            "Opción D: Realizar evento sin autorización"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! GCBA es el Gobierno de la Ciudad para trámites porteños.",
+            "incorrect": "Permisos municipales requieren identificar la jurisdicción específica."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Historia clínica en Uruguay",
+        "scenario": "Eres un uruguayo de 61 años que necesita acceder a su historia clínica digital para una segunda opinión.",
+        "options": [
+            "Opción A: Buscar: \"acceso historia clínica Uruguay MSP\"",
+            "Opción B: Escribir: \"mis registros médicos\"",
+            "Opción C: Pedir copias físicas en cada hospital",
+            "Opción D: Solicitar a su médico personal"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! MSP es el Ministerio de Salud Pública responsable.",
+            "incorrect": "Documentos médicos requieren identificar el sistema de salud nacional."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Credencial de adulto mayor en Perú",
+        "scenario": "Eres una mujer peruana de 68 años que necesita obtener credencial para descuentos de adulto mayor.",
+        "options": [
+            "Opción A: Buscar: \"credencial adulto mayor Essalud trámite\"",
+            "Opción B: Escribir: \"beneficios para ancianos\"",
+            "Opción C: Preguntar en centros municipales",
+            "Opción D: Presentar DNI en comercios solicitando descuento"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Essalud es la entidad encargada de este carné.",
+            "incorrect": "Beneficios sociales requieren identificación del organismo específico."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Consulta de multas en Guatemala",
+        "scenario": "Eres un guatemalteco de 39 años que quiere verificar si tiene multas de tránsito pendientes.",
+        "options": [
+            "Opción A: Buscar: \"consultar multas transito Guatemala DIGESTTIC\"",
+            "Opción B: Escribir: \"multas de tráfico\"",
+            "Opción C: Revisar correos no deseados en Gmail",
+            "Opción D: Esperar notificación física"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! DIGESTTIC es la dirección responsable de estas infracciones.",
+            "incorrect": "Consultas de multas requieren el nombre del organismo de transporte."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Registro de marca en México",
+        "scenario": "Eres un emprendedor mexicano de 29 años que quiere registrar una marca para su negocio.",
+        "options": [
+            "Opción A: Buscar: \"registro marca IMPI trámite en línea\"",
+            "Opción B: Escribir: \"proteger nombre de empresa\"",
+            "Opción C: Consultar gestores en marketplace",
+            "Opción D: Usar el nombre sin registro"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! IMPI es el Instituto Mexicano de Propiedad Industrial.",
+            "incorrect": "Trámites de propiedad intelectual requieren el organismo especializado."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Certificado de residencia en Paraguay",
+        "scenario": "Eres una venezolana residente en Paraguay de 35 años que necesita certificado de residencia para trámites.",
+        "options": [
+            "Opción A: Buscar: \"certificado residencia Paraguay Migraciones digital\"",
+            "Opción B: Escribir: \"documentos para extranjeros\"",
+            "Opción C: Consultar grupos de migrantes en redes",
+            "Opción D: Visitar la embajada venezolana"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! La Dirección de Migraciones es la entidad responsable.",
+            "incorrect": "Trámites migratorios requieren identificar la autoridad nacional."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Permiso de trabajo en Costa Rica",
+        "scenario": "Eres un nicaragüense de 27 años que necesita permiso de trabajo temporal en Costa Rica.",
+        "options": [
+            "Opción A: Buscar: \"permiso trabajo temporal Migración Costa Rica\"",
+            "Opción B: Escribir: \"trabajar en Costa Rica\"",
+            "Opción C: Contactar empleadores directamente",
+            "Opción D: Ingresar como turista y buscar empleo"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! La Dirección de Migración gestiona estos permisos.",
+            "incorrect": "Documentos laborales para extranjeros requieren el organismo migratorio."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Denuncia de trabajo informal en Argentina",
+        "scenario": "Eres un empleado argentino de 31 años que quiere denunciar trabajo no registrado.",
+        "options": [
+            "Opción A: Buscar: \"denuncia trabajo no registrado AFIP online\"",
+            "Opción B: Escribir: \"empleador sin aportes\"",
+            "Opción C: Publicar denuncia en redes sociales",
+            "Opción D: Renunciar sin tomar acción"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! AFIP recibe estas denuncias anónimas digitalmente.",
+            "incorrect": "Denuncias laborales requieren identificar el organismo recaudador."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Licencia de pesca en Chile",
+        "scenario": "Eres un pescador chileno de 45 años que necesita renovar su licencia de pesca recreativa.",
+        "options": [
+            "Opción A: Buscar: \"licencia pesca recreativa Sernapesca digital\"",
+            "Opción B: Escribir: \"permiso para pescar\"",
+            "Opción C: Preguntar en tiendas de pesca",
+            "Opción D: Pescar sin licencia"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Exacto! Sernapesca es el servicio nacional especializado.",
+            "incorrect": "Permisos de recursos naturales requieren el organismo regulador específico."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Permiso para alimentos en Panamá",
+        "scenario": "Eres una vendedora panameña de 40 años que necesita permiso para venta de alimentos en espacio público.",
+        "options": [
+            "Opción A: Buscar: \"permiso venta alimentos [distrito] Minsa online\"",
+            "Opción B: Escribir: \"vender comida en la calle\"",
+            "Opción C: Observar a otros vendedores informales",
+            "Opción D: Instalarse sin permiso"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Minsa otorga estos permisos sanitarios municipales.",
+            "incorrect": "Permisos comerciales requieren identificación de la autoridad sanitaria local."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Reclamo a empresa de servicios en Perú",
+        "scenario": "Eres un peruano de 50 años que quiere presentar reclamo formal contra su empresa de electricidad.",
+        "options": [
+            "Opción A: Buscar: \"reclamo Osinergmin servicio eléctrico\"",
+            "Opción B: Escribir: \"queja luz cortada\"",
+            "Opción C: Llamar al call center de la empresa",
+            "Opción D: Protestar en redes sociales"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Osinergmin es el regulador energético nacional.",
+            "incorrect": "Reclamos de servicios requieren identificar al organismo supervisor del sector."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Certificado de antecedentes en El Salvador",
+        "scenario": "Eres una salvadoreña de 26 años que necesita certificado de antecedentes para visa canadiense.",
+        "options": [
+            "Opción A: Buscar: \"certificado antecedentes penales PNC El Salvador online\"",
+            "Opción B: Escribir: \"documentos para visa\"",
+            "Opción C: Consultar agencias de viajes",
+            "Opción D: Ir a comisaría local"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! La Policía Nacional Civil (PNC) emite este documento.",
+            "incorrect": "Certificados policiales requieren identificar la institución responsable."
+        }
+    }
+]

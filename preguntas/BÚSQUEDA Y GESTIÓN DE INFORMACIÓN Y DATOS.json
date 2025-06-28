@@ -1,0 +1,92 @@
+[
+    {
+        "type": "multiple-choice",
+        "competence": "1.2",
+        "level": "Básico 2",
+        "title": "Evaluar credibilidad de fuente",
+        "scenario": "Estás investigando sobre vacunas para un trabajo escolar y encuentras un artículo en un blog desconocido.",
+        "options": [
+            "Opción A: Verificar si cita estudios de instituciones de salud reconocidas",
+            "Opción B: Confiar porque tiene muchas imágenes profesionales",
+            "Opción C: Compartirlo inmediatamente porque coincide con tu opinión",
+            "Opción D: Considerarlo válido por tener muchos likes/compartidos"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Las fuentes reconocidas dan validez científica a la información.",
+            "incorrect": "Recuerda: la apariencia o popularidad no garantizan veracidad. Busca siempre fuentes primarias."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.3",
+        "level": "Intermedio 1",
+        "title": "Organizar información digital",
+        "scenario": "Tienes 50 archivos descargados para un proyecto (PDFs, imágenes, documentos) en tu carpeta de Descargas.",
+        "options": [
+            "Opción A: Crear subcarpetas por tipo de archivo y tema, luego moverlos",
+            "Opción B: Dejarlos todos juntos y buscar con el cuadro de búsqueda",
+            "Opción C: Renombrar todos con números consecutivos",
+            "Opción D: Subirlos todos a la nube sin organizar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Excelente! Una estructura lógica facilita el acceso futuro a la información.",
+            "incorrect": "Organizar por categorías ahorra tiempo a largo plazo, aunque requiera esfuerzo inicial."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.1",
+        "level": "Básico 2",
+        "title": "Búsqueda avanzada en navegador",
+        "scenario": "Necesitas encontrar el texto original de una ley de tu país sobre derechos laborales.",
+        "options": [
+            "Opción A: Usar comillas: \"Ley de derechos laborales [país]\" sitio:gob",
+            "Opción B: Escribir: \"derechos de los trabajadores\"",
+            "Opción C: Buscar solo en Wikipedia",
+            "Opción D: Preguntar en un foro de empleados"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Perfecto! Las comillas y \"sitio:gob\" filtran resultados oficiales.",
+            "incorrect": "Para documentos legales, usa operadores de búsqueda y limita a dominios gubernamentales."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.2",
+        "level": "Intermedio 1",
+        "title": "Identificar noticia falsa",
+        "scenario": "Ves un titular alarmante sobre un nuevo impuesto compartido en un grupo de WhatsApp.",
+        "options": [
+            "Opción A: Verificar en sitios de fact-checking y medios oficiales",
+            "Opción B: Reenviarlo a otros grupos \"por si acaso\"",
+            "Opción C: Creerlo porque lo publicó un contacto confiable",
+            "Opción D: Ignorarlo sin verificar"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Bien hecho! Los verificadores de datos son clave contra desinformación.",
+            "incorrect": "El \"sesgo de confianza\" es peligroso. Siempre contrasta información sensible con fuentes primarias."
+        }
+    },
+    {
+        "type": "multiple-choice",
+        "competence": "1.3",
+        "level": "Básico 2",
+        "title": "Guardar información relevante",
+        "scenario": "Encuentras un tutorial perfecto para reparar tu electrodoméstico, pero temes que desaparezca.",
+        "options": [
+            "Opción A: Guardar página como PDF o usar \"Listas de lectura\" del navegador",
+            "Opción B: Dejar 50 pestañas abiertas \"para después\"",
+            "Opción C: Tomar fotos con el celular a la pantalla",
+            "Opción D: Memorizar los pasos clave"
+        ],
+        "correctAnswerIndex": 0,
+        "feedback": {
+            "correct": "¡Correcto! Formatos como PDF preservan contenido offline.",
+            "incorrect": "Las pestañas abiertas ralentizan tu dispositivo. Usa herramientas de guardado organizado."
+        }
+    }
+]
