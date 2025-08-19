@@ -38,6 +38,13 @@ export default function TestPage() {
     if (userData.completedCompetences.includes(competenceId)) {
       console.log(`Usuario ya completó la competencia: ${competenceId}. Redirigiendo a resultados.`)
       
+      // Limpiar sessionStorage para evitar mostrar datos incorrectos
+      try {
+        sessionStorage.removeItem('testResultData')
+      } catch (error) {
+        console.error('Error limpiando sessionStorage:', error)
+      }
+      
       router.push(`/test/${competenceId}/results?score=100&passed=true&correct=3&completed=true`)
       return
     }
@@ -219,7 +226,7 @@ export default function TestPage() {
             
             
             
-            DiggitaliScore: userData.DiggitaliScore + (passed ? 10 : 0),
+            LadicoScore: userData.LadicoScore + (passed ? 10 : 0),
           })
         } catch (error) {
           console.error("Error updating user progress:", error)
@@ -252,6 +259,25 @@ export default function TestPage() {
         // Pasar directo al siguiente de la misma área y nivel
         router.push(`/test/${nextCompetenceId}?level=${levelParam}`)
         return
+      }
+
+      // Guardar datos del test en sessionStorage para la página de resultados
+      const testResultData = {
+        questions: finalSession.questions,
+        answers: finalSession.answers,
+        competence: finalSession.competence,
+        level: levelParam,
+        score,
+        correctAnswers,
+        totalQuestions: finalSession.questions.length,
+        isAreaComplete: allCompletedAtLevel // Indicar si el área está completa
+      }
+      
+      try {
+        sessionStorage.setItem('testResultData', JSON.stringify(testResultData))
+        console.log('Datos del test guardados en sessionStorage:', testResultData)
+      } catch (error) {
+        console.error('Error guardando datos en sessionStorage:', error)
       }
 
       // Área completa en este nivel → ir a resultados agregados con pistas

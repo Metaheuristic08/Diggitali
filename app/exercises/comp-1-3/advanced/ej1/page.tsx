@@ -136,7 +136,7 @@ export default function EjercicioComp13Avanzado1() {
   }
 
   return (
-    <div className="min-h-screen Diggitali-gradient">
+    <div className="min-h-screen Ladico-gradient">
       {/* Popup inicial (idéntico a TestInterface) */}
       <Dialog open={showInitialWarning} onOpenChange={setShowInitialWarning}>
         <DialogContent className="sm:max-w-lg bg-gradient-to-br from-white to-gray-50 border-0 shadow-2xl">
@@ -190,7 +190,7 @@ export default function EjercicioComp13Avanzado1() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between text-white space-y-2 sm:space-y-0">
             <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-4">
-              <h1 className="text-lg sm:text-xl font-bold">Diggitali</h1>
+              <h1 className="text-lg sm:text-xl font-bold">Ladico</h1>
               <span className="text-xs sm:text-sm opacity-80 bg-white/10 px-2 sm:px-3 py-1 rounded-full text-center">
                 Gestión de datos | 1.3 Avanzado
               </span>
@@ -570,11 +570,11 @@ export default function EjercicioComp13Avanzado1() {
                 )}
               </div>
               {currentIndex < 2 ? (
-                <Button onClick={() => { if (!isQuestionLocked) { setCurrentIndex((i) => i + 1); setIsQuestionLocked(false); setShowWarning(false); setAttemptsLeft(3); setIsQuestionInvalidated(false); setShowInvalidationAlert(false) } }} disabled={isQuestionLocked} className="w-full sm:w-auto px-8 sm:px-10 py-3 Diggitali-button-primary">
+                <Button onClick={() => { if (!isQuestionLocked) { setCurrentIndex((i) => i + 1); setIsQuestionLocked(false); setShowWarning(false); setAttemptsLeft(3); setIsQuestionInvalidated(false); setShowInvalidationAlert(false) } }} disabled={isQuestionLocked} className="w-full sm:w-auto px-8 sm:px-10 py-3 Ladico-button-primary">
                   Siguiente
                 </Button>
               ) : (
-                <Button onClick={handleFinish} disabled={isQuestionLocked || isQuestionInvalidated} className="w-full sm:w-auto px-8 sm:px-10 py-3 Diggitali-button-primary">
+                <Button onClick={handleFinish} disabled={isQuestionLocked || isQuestionInvalidated} className="w-full sm:w-auto px-8 sm:px-10 py-3 Ladico-button-primary">
                   Finalizar
                 </Button>
               )}

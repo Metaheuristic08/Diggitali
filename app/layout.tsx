@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Diggitali | Simple y Directo",
+  title: "Ladico | Simple y Directo",
   description: "La plataforma más simple para transformar tu experiencia digital",
 }
 

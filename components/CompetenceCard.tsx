@@ -72,9 +72,18 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
 
   const handleStartOrContinue = () => {
     if (!canStartOrContinue) return
-    setLocallyStarted(true)
-    const levelParam = currentAreaLevel.toLowerCase()
-    router.push(`/test/${competence.id}?level=${levelParam}`)
+    
+    // Mostrar confirmación con el nivel
+    const levelText = currentAreaLevel
+    const confirmed = confirm(
+      `¿Deseas comenzar la evaluación del nivel ${levelText} para la competencia "${competence.name}"?\n\nSe evaluarán 3 preguntas de este nivel.`
+    )
+    
+    if (confirmed) {
+      setLocallyStarted(true)
+      const levelParam = currentAreaLevel.toLowerCase()
+      router.push(`/test/${competence.id}?level=${levelParam}`)
+    }
   }
 
   return (
@@ -139,8 +148,19 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
           >
             {canStartOrContinue ? btnLabel : (
               <span className="flex items-center justify-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-                <span className="text-xs text-red-700">Bloqueado</span>
+                {levelStatus.completed ? (
+                  <>
+                    <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs text-green-700 font-medium">Completado</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                    <span className="text-xs text-red-700">Bloqueado</span>
+                  </>
+                )}
               </span>
             )}
           </Button>

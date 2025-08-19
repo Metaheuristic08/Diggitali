@@ -1,4 +1,4 @@
-# Diggitali
+# Ladico
 
 npm install
 npm run build

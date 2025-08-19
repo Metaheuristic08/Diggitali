@@ -59,7 +59,7 @@ export default function QuestionsAdminPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Banco de Preguntas</h1>
               <p className="text-gray-600">Gestiona y visualiza todas las preguntas del sistema.</p>
             </div>
-            <Button onClick={() => router.push("/admin")} className="Diggitali-button-primary">
+            <Button onClick={() => router.push("/admin")} className="Ladico-button-primary">
               Agregar Nueva Pregunta
             </Button>
           </div>
@@ -74,7 +74,7 @@ export default function QuestionsAdminPage() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <p className="text-gray-500">No hay preguntas en el banco de datos.</p>
-                  <Button className="mt-4 Diggitali-button-primary" onClick={() => router.push("/admin")}>
+                  <Button className="mt-4 Ladico-button-primary" onClick={() => router.push("/admin")}>
                     Agregar Primera Pregunta
                   </Button>
                 </CardContent>

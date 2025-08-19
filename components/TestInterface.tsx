@@ -213,8 +213,8 @@ export default function TestInterface({ testSession, onAnswerSubmit, onTestCompl
             <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-4">
               <Link href="/dashboard">
                 <img
-                  src="/Diggitali_green.png"
-                  alt="Diggitali Logo"
+                  src="/ladico_green.png"
+                  alt="Ladico Logo"
                   className="w-24 h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
                 />
               </Link>

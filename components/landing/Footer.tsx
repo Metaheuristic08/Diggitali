@@ -13,8 +13,8 @@ export default function Footer() {
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex items-center space-x-3 mb-2">
                             <img
-                            src="/Diggitali_white.png"
-                            alt="Diggitali Logo"
+                            src="/ladico_white.png"
+                            alt="Ladico Logo"
                             className="w-32 max-w-full object-contain ml-1"
                             />
                         </div>
@@ -22,7 +22,7 @@ export default function Footer() {
                             Transformando la manera en que interactúas con la tecnología.
                         </p>
                         <p className="text-gray-400 mb-8 max-w-md leading-relaxed">
-                            {currentYear} Diggitali. Todos los derechos reservados.
+                            {currentYear} Ladico. Todos los derechos reservados.
                         </p>
                     </div>
                 </div>

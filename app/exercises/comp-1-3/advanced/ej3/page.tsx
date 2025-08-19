@@ -79,7 +79,7 @@ export default function EjercicioComp13Avanzado3() {
   }
 
   return (
-    <div className="min-h-screen Diggitali-gradient">
+    <div className="min-h-screen Ladico-gradient">
       <Dialog open={showInitialWarning} onOpenChange={setShowInitialWarning}>
         <DialogContent className="sm:max-w-lg bg-gradient-to-br from-white to-gray-50 border-0 shadow-2xl">
           <div className="relative">
@@ -105,7 +105,7 @@ export default function EjercicioComp13Avanzado3() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between text-white">
             <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
-              <h1 className="text-lg sm:text-xl font-bold">Diggitali</h1>
+              <h1 className="text-lg sm:text-xl font-bold">Ladico</h1>
               <span className="text-xs sm:text-sm opacity-80 bg-white/10 px-3 py-1 rounded-full">1.3 Avanzado</span>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function EjercicioComp13Avanzado3() {
             <p className="text-sm text-gray-600 mt-2">Progreso: {totalOk}/3 correctas</p>
 
             <div className="mt-6 flex justify-end">
-              <Button onClick={handleFinish} disabled={isQuestionLocked || isQuestionInvalidated} className="px-8 py-3 Diggitali-button-primary rounded-xl">Finalizar</Button>
+              <Button onClick={handleFinish} disabled={isQuestionLocked || isQuestionInvalidated} className="px-8 py-3 Ladico-button-primary rounded-xl">Finalizar</Button>
             </div>
           </CardContent>
         </Card>

@@ -19,7 +19,7 @@ interface UserData {
   email: string
   age: number
   country: string
-  DiggitaliScore: number
+  LadicoScore: number
   completedCompetences: string[]
   currentLevel: "basico" | "intermedio" | "avanzado"
 }
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: email.trim(),
         age,
         country,
-        DiggitaliScore: 0,
+        LadicoScore: 0,
         completedCompetences: [],
         currentLevel: "basico",
       }

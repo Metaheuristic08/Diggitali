@@ -3,14 +3,15 @@ import { initializeApp } from "firebase/app"
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOFq_3nQaLr84G9OdvH1TNZYexvrqfwhw",
-  authDomain: "ludico-backend.firebaseapp.com",
-  projectId: "ludico-backend",
-  storageBucket: "ludico-backend.firebasestorage.app",
-  messagingSenderId: "663116086194",
-  appId: "1:663116086194:web:ebb51b7246f147a25d82ab",
-  measurementId: "G-2WE2ZG3FF8",
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: "",
 }
+
 
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)

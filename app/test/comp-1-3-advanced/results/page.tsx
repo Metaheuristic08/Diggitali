@@ -4,8 +4,9 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle, XCircle, Trophy, RotateCcw, FileSpreadsheet } from "lucide-react"
+import { Suspense } from "react"
 
-export default function AdvancedTestResults() {
+function AdvancedTestResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -24,7 +25,7 @@ export default function AdvancedTestResults() {
   }
 
   return (
-    <div className="min-h-screen Diggitali-gradient flex items-center justify-center p-3 sm:p-4">
+    <div className="min-h-screen Ladico-gradient flex items-center justify-center p-3 sm:p-4">
       <Card className="w-full max-w-3xl shadow-2xl rounded-2xl sm:rounded-3xl border-0 overflow-hidden">
         <CardHeader className="text-center bg-gradient-to-b from-white to-gray-50 pb-6 sm:pb-8 px-4 sm:px-6">
           <div className="mx-auto mb-4 sm:mb-6">
@@ -84,7 +85,7 @@ export default function AdvancedTestResults() {
             {passed && (
               <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-medium shadow-sm">
                 <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                +15 Diggitali ganados (Ejercicio Avanzado)
+                +15 Ladico ganados (Ejercicio Avanzado)
               </div>
             )}
           </div>
@@ -159,5 +160,17 @@ export default function AdvancedTestResults() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function AdvancedTestResults() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen Ladico-gradient flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    }>
+      <AdvancedTestResultsContent />
+    </Suspense>
   )
 }

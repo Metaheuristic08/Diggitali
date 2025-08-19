@@ -40,7 +40,7 @@ export default function Sidebar() {
         fixed top-0 left-0 h-[100dvh] w-[70vw] max-w-xs lg:top-6 lg:bottom-6 lg:left-6 lg:h-auto lg:w-56 bg-[#286675] rounded-3xl shadow-xl z-[110] transition-transform duration-300
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      `} style={{ willChange: 'transform', contain: 'layout style paint' }}>
         <div className="flex flex-col h-full">
           <div className="pt-5 px-4">
             <div className="flex items-center justify-between mb-8">
@@ -53,8 +53,8 @@ export default function Sidebar() {
               <div className="flex justify-center py-4 lg:justify-center">
                 <Link href="/" onClick={() => setIsOpen(false)}>
                 <img
-                  src="/Diggitali_white.png"
-                  alt="Diggitali Logo"
+                  src="/ladico_white.png"
+                  alt="Ladico Logo"
                   className="w-32 max-w-full object-contain ml-7"
                 />
                 </Link>

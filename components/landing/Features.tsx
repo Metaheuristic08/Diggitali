@@ -39,7 +39,7 @@ const features = [
 
 export default function Features() {
     return (
-        <section id="caracteristicas" className="Diggitali-section bg-white">
+        <section id="caracteristicas" className="ladico-section bg-white">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center space-x-2 bg-gray-50 border-2 border-gray-100 rounded-2xl px-6 py-3 mb-6">
@@ -60,7 +60,7 @@ export default function Features() {
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div
-                                className={`Diggitali-feature-icon ${feature.bgColor} ${feature.borderColor} mb-6 group-hover:scale-110 transition-transform duration-300`}
+                                className={`ladico-feature-icon ${feature.bgColor} ${feature.borderColor} mb-6 group-hover:scale-110 transition-transform duration-300`}
                             >
                                 <feature.icon className="h-8 w-8 text-gray-700" />
                             </div>

@@ -50,8 +50,8 @@ export default function Header() {
                     <div
                     >
                         <img
-                            src="/Diggitali_white.png"
-                            alt="Diggitali Logo"
+                            src="/ladico_white.png"
+                            alt="Ladico Logo"
                             className="w-24 h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => scrollTo('inicio')}
                         />

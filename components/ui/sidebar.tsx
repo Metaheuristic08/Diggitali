@@ -41,14 +41,14 @@ export default function Sidebar() {
 
       
       <div className={`
-        fixed top-0 left-0 h-[100dvh] w-[80vw] max-w-xs lg:inset-y-0 lg:left-4 lg:w-56 Diggitali-sidebar rounded-none lg:rounded-2xl shadow-xl border border-indigo-300/20 z-[105] transition-transform duration-300
+        fixed top-0 left-0 h-[100dvh] w-[80vw] max-w-xs lg:inset-y-0 lg:left-4 lg:w-56 Ladico-sidebar rounded-none lg:rounded-2xl shadow-xl border border-indigo-300/20 z-[105] transition-transform duration-300
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-64'}
       `}>
         <div className="flex flex-col h-full justify-between py-4 lg:py-6">
           <div>
             <div className="flex items-center justify-center h-14 px-3 border-b border-white/10">
-              <h1 className="text-xl font-bold text-white">Diggitali</h1>
+              <h1 className="text-xl font-bold text-white">Ladico</h1>
             </div>
 
             <nav className="flex-1 px-3 py-4 space-y-1">

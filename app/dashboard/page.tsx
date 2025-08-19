@@ -85,15 +85,15 @@ export default function Dashboard() {
               <div className="text-center lg:text-left">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1 lg:mb-2">Competencias</h1>
                 <p className="text-sm lg:text-base text-gray-600">
-                  Evalúate a tu propio ritmo en las competencias digitales. Elige una competencia y comienza a ganar Diggitalis.
+                  Evalúate a tu propio ritmo en las competencias digitales. Elige una competencia y comienza a ganar Ladicos.
                 </p>
               </div>
 
               <div className="text-center flex-shrink-0">
                 <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-[#94b2ba] to-[#286675] rounded-full flex items-center justify-center text-white mb-2 shadow-xl border-4 border-white mx-auto">
                   <div>
-                    <div className="text-lg lg:text-2xl font-bold">{userData?.DiggitaliScore || 0}</div>
-                    <div className="text-xs font-medium">Diggitalis</div>
+                    <div className="text-lg lg:text-2xl font-bold">{userData?.LadicoScore || 0}</div>
+                    <div className="text-xs font-medium">Ladicos</div>
                   </div>
                 </div>
               </div>

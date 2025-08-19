@@ -3,17 +3,20 @@
 import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, XCircle, Trophy, RotateCcw } from "lucide-react"
+import { CheckCircle, XCircle, Trophy, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { loadCompetences } from "@/services/questionsService"
-import { collection, getDocs, query, where } from "firebase/firestore"
+import { collection, getDocs, query, where, orderBy, limit } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useAuth } from "@/contexts/AuthContext"
+import type { TestSession, Question } from "@/types"
 
-export default function TestResults() {
+function TestResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const params = useParams()
+  const { user } = useAuth()
 
   const score = Number.parseInt(searchParams.get("score") || "0")
   const passed = searchParams.get("passed") === "true"
@@ -25,15 +28,179 @@ export default function TestResults() {
   const [firstCompetenceInArea, setFirstCompetenceInArea] = useState<string | null>(null)
   const [loadingArea, setLoadingArea] = useState(false)
   const [areaCounts, setAreaCounts] = useState<{ completed: number; total: number } | null>(null)
+  const [testQuestions, setTestQuestions] = useState<Question[]>([])
+  const [userAnswers, setUserAnswers] = useState<(number | null)[]>([])
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [loadingQuestions, setLoadingQuestions] = useState(true)
+
+  // Función para cargar todas las preguntas del área (9 preguntas de 3 niveles)
+  const loadAllAreaQuestions = async (competenceId: string) => {
+    if (!user?.uid || !db) {
+      console.log('Usuario o DB no disponible para cargar preguntas del área')
+      return
+    }
+    
+    try {
+      console.log('=== CARGANDO TODAS LAS PREGUNTAS DEL ÁREA ===')
+      console.log('Competencia:', competenceId)
+      console.log('Usuario:', user.uid)
+      
+      const levels = ['basico', 'intermedio', 'avanzado']
+      let allQuestions: Question[] = []
+      let allAnswers: (number | null)[] = []
+      
+      for (const level of levels) {
+        console.log(`\n--- Cargando sesión de nivel ${level} ---`)
+        
+        const sessionQuery = query(
+          collection(db, "testSessions"), 
+          where("userId", "==", user.uid),
+          where("competence", "==", competenceId),
+          where("level", "==", level),
+          orderBy("startTime", "desc"),
+          limit(1)
+        )
+        
+        const sessionSnapshot = await getDocs(sessionQuery)
+        console.log(`Documentos encontrados para ${level}:`, sessionSnapshot.size)
+        
+        if (!sessionSnapshot.empty) {
+          const sessionData = sessionSnapshot.docs[0].data() as TestSession
+          console.log(`Sesión ${level} encontrada:`, {
+            id: sessionSnapshot.docs[0].id,
+            questionsCount: sessionData.questions?.length || 0,
+            answersCount: sessionData.answers?.length || 0,
+            score: sessionData.score,
+            startTime: sessionData.startTime
+          })
+          
+          if (sessionData.questions && sessionData.questions.length > 0) {
+            allQuestions.push(...sessionData.questions)
+            console.log(`✅ ${sessionData.questions.length} preguntas agregadas desde nivel ${level}`)
+          } else {
+            console.log(`⚠️ No se encontraron preguntas en la sesión de ${level}`)
+          }
+          
+          if (sessionData.answers) {
+            allAnswers.push(...sessionData.answers)
+            console.log(`✅ ${sessionData.answers.length} respuestas agregadas desde nivel ${level}`)
+          } else {
+            console.log(`⚠️ No se encontraron respuestas en la sesión de ${level}`)
+          }
+        } else {
+          console.log(`❌ No se encontró sesión para nivel ${level}`)
+        }
+      }
+      
+      console.log('\n=== RESUMEN FINAL ===')
+      console.log(`Total de preguntas cargadas: ${allQuestions.length}`)
+      console.log(`Total de respuestas cargadas: ${allAnswers.length}`)
+      
+      if (allQuestions.length > 0) {
+        setTestQuestions(allQuestions)
+        setUserAnswers(allAnswers)
+        console.log('✅ Todas las preguntas del área cargadas exitosamente')
+      } else {
+        console.log('❌ No se cargaron preguntas del área')
+      }
+    } catch (error) {
+      console.error('❌ Error cargando todas las preguntas del área:', error)
+    }
+  }
 
   useEffect(() => {
     const run = async () => {
-      if (!areaCompleted) return
+      if (!user?.uid) return
       setLoadingArea(true)
+      setLoadingQuestions(true)
+      
+      const competenceId = params.competenceId as string
+      console.log('=== INICIO CARGA RESULTADOS ===')
+      console.log('Competencia:', competenceId)
+      console.log('Nivel:', levelParam)
+      console.log('Área completada:', areaCompleted)
+      console.log('Ya completado:', isAlreadyCompleted)
+      
       try {
+        // Primero intentar cargar los datos desde sessionStorage
+        let questionsLoaded = false
+        
+        try {
+          const testResultDataStr = sessionStorage.getItem('testResultData')
+          if (testResultDataStr) {
+            const testResultData = JSON.parse(testResultDataStr)
+            console.log('📦 Datos del test cargados desde sessionStorage:', testResultData)
+            
+            if (testResultData.questions && testResultData.answers) {
+              setTestQuestions(testResultData.questions)
+              setUserAnswers(testResultData.answers)
+              questionsLoaded = true
+              console.log('✅ Preguntas y respuestas cargadas exitosamente desde sessionStorage')
+              console.log(`   - Preguntas: ${testResultData.questions.length}`)
+              console.log(`   - Respuestas: ${testResultData.answers.length}`)
+            } else {
+              console.log('⚠️ Datos incompletos en sessionStorage')
+            }
+            
+            // Solo limpiar sessionStorage si no vamos a cargar todas las preguntas del área
+            if (!areaCompleted) {
+              sessionStorage.removeItem('testResultData')
+            }
+          } else {
+            console.log('❌ No hay datos en sessionStorage')
+          }
+        } catch (error) {
+          console.error('❌ Error cargando datos desde sessionStorage:', error)
+        }
+        
+        // Si areaCompleted es true, cargar TODAS las preguntas del área
+        if (areaCompleted && !questionsLoaded) {
+          console.log('🏆 Área completa detectada, cargando todas las preguntas desde Firebase...')
+          await loadAllAreaQuestions(competenceId)
+          questionsLoaded = true
+        }
+        
+        // Si no se cargaron las preguntas aún, cargar desde Firebase como respaldo
+        if (!questionsLoaded && db) {
+          console.log('🔄 Cargando sesión desde Firebase como respaldo...')
+          
+          const sessionQuery = query(
+            collection(db, "testSessions"), 
+            where("userId", "==", user.uid),
+            where("competence", "==", competenceId),
+            where("level", "==", levelParam),
+            orderBy("startTime", "desc"),
+            limit(1)
+          )
+          
+          const sessionSnapshot = await getDocs(sessionQuery)
+          if (!sessionSnapshot.empty) {
+            const sessionData = sessionSnapshot.docs[0].data() as TestSession
+            console.log("✅ Sesión encontrada en Firebase:", {
+              id: sessionSnapshot.docs[0].id,
+              questionsCount: sessionData.questions?.length || 0,
+              answersCount: sessionData.answers?.length || 0
+            })
+            
+            if (sessionData.questions && sessionData.questions.length > 0) {
+              setTestQuestions(sessionData.questions)
+              console.log(`✅ ${sessionData.questions.length} preguntas cargadas desde Firebase`)
+            }
+            
+            if (sessionData.answers) {
+              setUserAnswers(sessionData.answers)
+              console.log(`✅ ${sessionData.answers.length} respuestas cargadas desde Firebase`)
+            }
+            questionsLoaded = true
+          } else {
+            console.log("❌ No se encontró sesión en Firebase para esta competencia y nivel")
+          }
+        }
+
+        if (!areaCompleted) return
+        
         const comps = await loadCompetences()
-        const currentId = params.competenceId as string
-        const current = comps.find(c => c.id === currentId)
+        const current = comps.find(c => c.id === competenceId)
         if (!current) return
         const inArea = comps.filter(c => c.dimension === current.dimension).sort((a, b) => a.code.localeCompare(b.code))
         setFirstCompetenceInArea(inArea[0]?.id || null)
@@ -48,12 +215,15 @@ export default function TestResults() {
           if (hasPerfect) completed++
         }
         setAreaCounts({ completed, total: inArea.length })
+      } catch (error) {
+        console.error("Error cargando datos de la sesión:", error)
       } finally {
         setLoadingArea(false)
+        setLoadingQuestions(false)
       }
     }
     run()
-  }, [areaCompleted, params.competenceId])
+  }, [areaCompleted, params.competenceId, user?.uid, levelParam])
 
   const handleReturnToDashboard = () => {
     router.push("/dashboard")
@@ -116,18 +286,18 @@ export default function TestResults() {
           <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
               <div className="p-3 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200">
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{totalQuestions}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Preguntas</div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">1</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Competencia</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl sm:rounded-2xl shadow-sm border border-green-200">
-                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{correctAnswers}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Correctas</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{passed ? 1 : 0}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Correcta</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl sm:rounded-2xl shadow-sm border border-red-200">
-                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{totalQuestions - correctAnswers}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Incorrectas</div>
+                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{passed ? 0 : 1}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Incorrecta</div>
               </div>
             </div>
 
@@ -139,7 +309,7 @@ export default function TestResults() {
               {passed && (
                 <div className="mt-3 sm:mt-4 inline-flex items-center px-3 sm:px-4 py-2 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-medium shadow-sm">
                   <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                  +10 Diggitali ganados
+                  +10 Ladico ganados
                 </div>
               )}
             </div>
@@ -156,34 +326,293 @@ export default function TestResults() {
                   </p>
                 </div>
               )}
-              <h3 className="font-bold text-gray-900 text-base sm:text-lg">Resumen de respuestas:</h3>
-              <div className="space-y-2 sm:space-y-3">
-                {Array.from({ length: totalQuestions }, (_, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm"
-                  >
-                    <span className="text-gray-700 font-medium text-sm sm:text-base">Pregunta {index + 1}</span>
-                    {index < correctAnswers ? (
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                        <span className="text-green-600 font-medium text-xs sm:text-sm">Correcta</span>
+              
+              <h3 className="font-bold text-gray-900 text-base sm:text-lg">
+                Detalle de preguntas evaluadas:
+                {testQuestions.length > 3 && (
+                  <span className="ml-2 text-sm font-medium text-[#286675]">
+                    (Resumen completo del área - {testQuestions.length} preguntas)
+                  </span>
+                )}
+              </h3>
+              
+              {loadingQuestions ? (
+                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#286675] mx-auto mb-4"></div>
+                  <p className="text-gray-600">Cargando detalles de las preguntas...</p>
+                </div>
+              ) : testQuestions.length > 0 ? (
+                <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  {/* Navegación del carrusel mejorada */}
+                  <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                    <button
+                      onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                      disabled={currentQuestionIndex === 0}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                        currentQuestionIndex === 0 
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                          : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </button>
+                    
+                    <div className="text-center">
+                      <span className="text-sm text-gray-600 font-medium mb-2 block">
+                        Pregunta {currentQuestionIndex + 1} de {testQuestions.length}
+                      </span>
+                      {/* Indicadores de progreso mejorados */}
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        {testQuestions.map((_, index) => {
+                          // Determinar color del indicador basado en el nivel si hay 9 preguntas
+                          let indicatorColor = 'bg-gray-300 hover:bg-gray-400'
+                          if (testQuestions.length > 3) {
+                            if (index < 3) indicatorColor = 'bg-green-300 hover:bg-green-400' // Básico
+                            else if (index < 6) indicatorColor = 'bg-blue-300 hover:bg-blue-400' // Intermedio  
+                            else indicatorColor = 'bg-purple-300 hover:bg-purple-400' // Avanzado
+                          }
+                          
+                          if (index === currentQuestionIndex) {
+                            indicatorColor = 'bg-[#286675] scale-125 shadow-md'
+                          }
+                          
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => setCurrentQuestionIndex(index)}
+                              className={`w-3 h-3 rounded-full transition-all duration-200 ${indicatorColor}`}
+                              aria-label={`Ir a pregunta ${index + 1}${testQuestions.length > 3 ? 
+                                ` (${index < 3 ? 'Básico' : index < 6 ? 'Intermedio' : 'Avanzado'})` : ''}`}
+                              title={testQuestions.length > 3 ? 
+                                `Pregunta ${index + 1} - Nivel ${index < 3 ? 'Básico' : index < 6 ? 'Intermedio' : 'Avanzado'}` : 
+                                `Pregunta ${index + 1}`}
+                            />
+                          )
+                        })}
                       </div>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-                        <span className="text-red-600 font-medium text-xs sm:text-sm">Incorrecta</span>
-                      </div>
-                    )}
+                      {/* Leyenda de colores para área completa */}
+                      {testQuestions.length > 3 && (
+                        <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-green-300 rounded-full"></div>
+                            <span>Básico</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                            <span>Intermedio</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                            <span>Avanzado</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => setCurrentQuestionIndex(Math.min(testQuestions.length - 1, currentQuestionIndex + 1))}
+                      disabled={currentQuestionIndex === testQuestions.length - 1}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                        currentQuestionIndex === testQuestions.length - 1 
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                          : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
+                      }`}
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
-                ))}
-              </div>
+
+                  {/* Contenido de la pregunta mejorado */}
+                  <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <div className="mb-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-[#286675] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                          {currentQuestionIndex + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 text-lg">
+                            {testQuestions[currentQuestionIndex]?.title}
+                          </h4>
+                          {/* Mostrar nivel si hay más de 3 preguntas (área completa) */}
+                          {testQuestions.length > 3 && (
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                currentQuestionIndex < 3 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : currentQuestionIndex < 6 
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-purple-100 text-purple-800'
+                              }`}>
+                                Nivel {currentQuestionIndex < 3 ? 'Básico' : currentQuestionIndex < 6 ? 'Intermedio' : 'Avanzado'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-700 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                        {testQuestions[currentQuestionIndex]?.scenario}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {testQuestions[currentQuestionIndex]?.options.map((option, index) => {
+                        const userAnswer = userAnswers[currentQuestionIndex]
+                        const correctAnswer = testQuestions[currentQuestionIndex]?.correctAnswerIndex
+                        const isUserAnswer = userAnswer === index
+                        const isCorrectAnswer = correctAnswer === index
+                        
+                        let className = "p-4 rounded-lg border text-sm transition-all duration-200 "
+                        let iconElement = null
+                        let letterLabel = String.fromCharCode(65 + index) // A, B, C, D
+                        
+                        if (isUserAnswer && isCorrectAnswer) {
+                          className += "bg-green-50 border-green-300 text-green-800 shadow-md ring-2 ring-green-200"
+                          iconElement = <CheckCircle className="w-5 h-5 text-green-600" />
+                        } else if (isUserAnswer && !isCorrectAnswer) {
+                          className += "bg-red-50 border-red-300 text-red-800 shadow-md ring-2 ring-red-200"
+                          iconElement = <XCircle className="w-5 h-5 text-red-600" />
+                        } else if (isCorrectAnswer) {
+                          className += "bg-green-50 border-green-300 text-green-800 shadow-sm"
+                          iconElement = <CheckCircle className="w-5 h-5 text-green-600" />
+                        } else {
+                          className += "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                        }
+                        
+                        return (
+                          <div key={index} className={className}>
+                            <div className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                                isCorrectAnswer || isUserAnswer 
+                                  ? 'bg-white text-gray-700 border-2 border-current' 
+                                  : 'bg-gray-100 text-gray-500 border border-gray-300'
+                              }`}>
+                                {letterLabel}
+                              </div>
+                              <span className="flex-1">{option}</span>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {isUserAnswer && (
+                                  <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                    Tu respuesta
+                                  </span>
+                                )}
+                                {iconElement}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Resumen de la respuesta mejorado */}
+                    <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
+                      <div className="text-sm">
+                        <h5 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                          <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">i</span>
+                          </div>
+                          Resumen de la respuesta:
+                        </h5>
+                        <div className="space-y-2">
+                          <p className="text-blue-700">
+                            <span className="font-medium">Tu respuesta:</span>{' '}
+                            <span className={`font-semibold ${
+                              userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex 
+                                ? 'text-green-700' 
+                                : 'text-red-700'
+                            }`}>
+                              {userAnswers[currentQuestionIndex] !== null && userAnswers[currentQuestionIndex] !== undefined
+                                ? `${String.fromCharCode(65 + userAnswers[currentQuestionIndex]!)}. ${testQuestions[currentQuestionIndex]?.options[userAnswers[currentQuestionIndex]!]}` 
+                                : 'No respondida'}
+                            </span>
+                          </p>
+                          <p className="text-blue-700">
+                            <span className="font-medium">Respuesta correcta:</span>{' '}
+                            <span className="font-semibold text-green-700">
+                              {testQuestions[currentQuestionIndex]?.correctAnswerIndex !== undefined 
+                                ? `${String.fromCharCode(65 + testQuestions[currentQuestionIndex]?.correctAnswerIndex!)}. ${testQuestions[currentQuestionIndex]?.options[testQuestions[currentQuestionIndex]?.correctAnswerIndex!]}`
+                                : 'No disponible'}
+                            </span>
+                          </p>
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+                            userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex ? (
+                              <>
+                                <CheckCircle className="w-3 h-3" />
+                                Correcta
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3 h-3" />
+                                Incorrecta
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Indicadores visuales de correcta/incorrecta - Puntos indicadores */}
+                  <div className="flex justify-center gap-2 mt-4">
+                    {testQuestions.map((_, index) => {
+                      const userAnswer = userAnswers[index]
+                      const correctAnswer = testQuestions[index]?.correctAnswerIndex
+                      const isCorrect = userAnswer === correctAnswer
+                      
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentQuestionIndex(index)}
+                          className={`w-4 h-4 rounded-full transition-all ${
+                            index === currentQuestionIndex 
+                              ? isCorrect 
+                                ? "bg-green-500 ring-2 ring-green-300" 
+                                : "bg-red-500 ring-2 ring-red-300"
+                              : isCorrect
+                                ? "bg-green-300 hover:bg-green-400"
+                                : "bg-red-300 hover:bg-red-400"
+                          }`}
+                          title={`Pregunta ${index + 1} - ${isCorrect ? 'Correcta' : 'Incorrecta'}`}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 sm:space-y-3">
+                  {Array.from({ length: totalQuestions }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm"
+                    >
+                      <span className="text-gray-700 font-medium text-sm sm:text-base">Pregunta {index + 1}</span>
+                      {index < correctAnswers ? (
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                          <span className="text-green-600 font-medium text-xs sm:text-sm">Correcta</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+                          <span className="text-red-600 font-medium text-xs sm:text-sm">Incorrecta</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl border border-blue-200 shadow-sm">
               <p className="text-blue-800 leading-relaxed text-sm sm:text-base">
                 {isAlreadyCompleted
-                  ? "Has completado esta competencia previamente. Tus Diggitalis ya han sido otorgados. Explora otras competencias para seguir creciendo."
+                  ? "Has completado esta competencia previamente. Tus Ladicos ya han sido otorgados. Explora otras competencias para seguir creciendo."
                   : passed
                     ? "¡Excelente trabajo! Has completado esta competencia exitosamente. ¡Continúa desarrollando tus habilidades digitales!"
                     : "No te desanimes. Puedes volver a intentarlo cuando te sientas preparado. Recuerda revisar los recursos de apoyo."}
@@ -214,5 +643,17 @@ export default function TestResults() {
         </Card>
       </div>
     </>
+  )
+}
+
+export default function TestResults() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f3fbfb] lg:pl-72 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#286675]"></div>
+      </div>
+    }>
+      <TestResultsContent />
+    </Suspense>
   )
 }

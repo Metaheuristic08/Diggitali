@@ -8,7 +8,7 @@ export default function Hero() {
     }
 
     return (
-        <section id="inicio" className="min-h-screen flex items-center justify-center Diggitali-section pt-32">
+        <section id="inicio" className="min-h-screen flex items-center justify-center ladico-section pt-32">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     
@@ -32,15 +32,15 @@ export default function Hero() {
 
                         
                         <div className="grid grid-cols-3 gap-6">
-                            <div className="Diggitali-stat-card">
+                            <div className="ladico-stat-card">
                                 <div className="text-3xl font-bold text-[#1f302b] mb-2">Cursos</div>
                                 <div className="text-gray-600">Para diferentes edades y conocimientos.</div>
                             </div>
-                            <div className="Diggitali-stat-card">
+                            <div className="ladico-stat-card">
                                 <div className="text-3xl font-bold text-[#1f302b] mb-2">Ayuda</div>
                                 <div className="text-gray-600">Adecuado para quién sea.</div>
                             </div>
-                            <div className="Diggitali-stat-card">
+                            <div className="ladico-stat-card">
                                 <div className="text-3xl font-bold text-[#1f302b] mb-2">Logros</div>
                                 <div className="text-gray-600">Puntajes y miscelaneos para todos.</div>
                             </div>
@@ -53,8 +53,8 @@ export default function Hero() {
                             <div className="relative">
                                 <div className="w-full h-80 bg-gradient-to-br from-white to-gray-50 rounded-3xl border-2 border-gray-100 flex items-center justify-center mb-8">
                                     <img
-                                        src="/Diggitali.png"
-                                        alt="Diggitali Logo"
+                                        src="/ladico.png"
+                                        alt="Ladico Logo"
                                         className="w-40 h-40 bg-white rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg border-2 border-gray-200"
                                     />
                                 </div>
