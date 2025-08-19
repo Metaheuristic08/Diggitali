@@ -5,13 +5,13 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyADgCJZhie5XzhovxDVVQ6oySlmO7ADDgA",
-  authDomain: "ludicocos-e4bcc.firebaseapp.com",
-  projectId: "ludicocos-e4bcc",
-  storageBucket: "ludicocos-e4bcc.firebasestorage.app",
-  messagingSenderId: "251212234614",
-  appId: "1:251212234614:web:f52d46396a1374b66cc457",
-  measurementId: "G-RT3XB7QGP0",
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: "",
 }
 
 const app = initializeApp(firebaseConfig)

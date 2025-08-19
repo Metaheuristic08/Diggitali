@@ -59,9 +59,9 @@ export default function FirebaseDiagnostic() {
         
         if (app) {
           setConfig({
-            projectId: "ludicocos-e4bcc",
-            authDomain: "ludicocos-e4bcc.firebaseapp.com",
-            apiKey: "AIzaSyAD***", 
+            projectId: "",
+            authDomain: "",
+            apiKey: "", 
           })
         }
 
