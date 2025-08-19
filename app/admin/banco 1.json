@@ -1,0 +1,380 @@
+[
+  {
+    "type": "multiple-choice",
+    "competence": "1.1",
+    "level": "Básico 2",
+    "title": "¿Cómo buscar información sobre trámites de identificación?",
+    "scenario": "Sofía, una joven de 16 años en Colombia, necesita obtener su cédula de ciudadanía para realizar algunos trámites. Decide buscar información en internet sobre los requisitos y el proceso.",
+    "options": [
+      "Opción A: 'requisitos cédula ciudadanía Colombia registraduria'",
+      "Opción B: 'cómo sacar mi identificación rápido'",
+      "Opción C: 'buscar trámites en TikTok'",
+      "Opción D: 'Preguntar a un amigo si sabe cómo se saca la cédula'"
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Esa es una manera clara y eficaz de encontrar la información digital.",
+      "incorrect": "No es la mejor opción. Recuerda usar palabras específicas y fuentes confiables al buscar trámites."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.1",
+    "level": "Básico 2",
+    "title": "Encontrar el sitio web oficial para un trámite escolar",
+    "scenario": "Juan, un estudiante de 14 años en Argentina, necesita matricularse en el siguiente ciclo escolar. Busca en internet el sitio web del Ministerio de Educación para encontrar los formularios.",
+    "options": [
+      "Opción A: 'Ministerio de Educación Argentina matriculación escolar'",
+      "Opción B: 'inscripciones colegios Argentina', en un foro de internet",
+      "Opción C: 'Buscar escuela en Facebook'",
+      "Opción D: 'Esperar a que la escuela le envíe la información por correo postal'"
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Una búsqueda precisa te lleva directamente a la fuente oficial.",
+      "incorrect": "Para encontrar información oficial, es mejor usar términos claros y buscar en sitios gubernamentales."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.1",
+    "level": "Básico 2",
+    "title": "Cómo buscar requisitos para un permiso juvenil",
+    "scenario": "María, de 15 años en México, quiere obtener un permiso para trabajar medio tiempo. Necesita saber qué documentos necesita presentar y dónde solicitarlos.",
+    "options": [
+      "Opción A: 'requisitos permiso trabajo menor edad México'",
+      "Opción B: 'permiso para trabajar rápido jóvenes'",
+      "Opción C: 'Buscar empleo joven en Instagram'",
+      "Opción D: 'No buscar y esperar a cumplir 18 años'"
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Utilizar términos específicos te ayudará a encontrar la información que buscas.",
+      "incorrect": "Busca términos relacionados con el trámite y la institución gubernamental para encontrar la información correcta."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.2",
+    "level": "Básico 2",
+    "title": "¿Cómo saber si una página sobre un trámite es confiable?",
+    "scenario": "Carlos, de 17 años en Chile, está buscando información para renovar su pase escolar. Encuentra una página web que parece ofrecer la información, pero no está seguro si es el sitio oficial.",
+    "options": [
+      "Opción A: Verificar que la dirección web termine en '.gob.cl' o tenga el logo de una institución oficial.",
+      "Opción B: Si la página tiene muchos anuncios llamativos.",
+      "Opción C: Si la página tiene muchos 'me gusta' en redes sociales.",
+      "Opción D: Si un amigo le dijo que la página era buena."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Los dominios gubernamentales (.gob) y la presencia de logos oficiales son buenos indicadores de confiabilidad.",
+      "incorrect": "Ten cuidado con la información en internet. Busca señales que te indiquen si la página es oficial."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.2",
+    "level": "Básico 2",
+    "title": "Identificar información oficial sobre becas",
+    "scenario": "Ana, una joven de 15 años en Perú, está buscando becas para continuar sus estudios. Encuentra información en un blog personal sobre un programa de becas.",
+    "options": [
+      "Opción A: Buscar la misma información en el sitio web del Ministerio de Educación o una institución gubernamental de becas.",
+      "Opción B: Si el blog tiene muchos comentarios positivos.",
+      "Opción C: Si la información parece muy atractiva y fácil de obtener.",
+      "Opción D: Confiar en la información del blog sin verificarla en otra fuente."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Siempre es importante verificar la información importante en fuentes oficiales.",
+      "incorrect": "Los blogs pueden tener información útil, pero para trámites oficiales, es mejor consultar sitios gubernamentales."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.2",
+    "level": "Básico 2",
+    "title": "Evaluar la fuente de un trámite digital",
+    "scenario": "Roberto, de 16 años en Ecuador, recibe un correo electrónico que le informa sobre un nuevo trámite para jóvenes y le pide hacer clic en un enlace.",
+    "options": [
+      "Opción A: Verificar si el correo proviene de una dirección de correo oficial (con dominio .gob.ec) y no hacer clic en el enlace si no está seguro.",
+      "Opción B: Hacer clic en el enlace para ver de qué se trata.",
+      "Opción C: Responder al correo pidiendo más información.",
+      "Opción D: Compartir el correo con sus amigos para ver si ellos saben algo."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Ser precavido con correos sospechosos es clave para tu seguridad en línea.",
+      "incorrect": "Ten cuidado con los correos electrónicos desconocidos, podrían ser intentos de estafa."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.3",
+    "level": "Básico 2",
+    "title": "¿Cómo guardar un documento importante de un trámite?",
+    "scenario": "Valeria, de 14 años en Uruguay, ha descargado un formulario oficial para un trámite escolar desde internet.",
+    "options": [
+      "Opción A: Guardarlo en una carpeta con un nombre claro como 'Formulario Matricula Escolar'.",
+      "Opción B: Dejarlo en la carpeta de descargas con el nombre que tenía al descargarlo.",
+      "Opción C: Imprimirlo inmediatamente y no guardarlo digitalmente.",
+      "Opción D: Subirlo a una red social para tenerlo disponible."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Organizar tus archivos con nombres claros te ayuda a encontrarlos fácilmente.",
+      "incorrect": "Es importante guardar tus documentos digitales de forma organizada para poder encontrarlos cuando los necesites."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.3",
+    "level": "Básico 2",
+    "title": "Organizar información de varios trámites",
+    "scenario": "Diego, de 17 años en Paraguay, está investigando sobre diferentes trámites universitarios y ha descargado varios documentos e información.",
+    "options": [
+      "Opción A: Crear carpetas separadas para cada universidad o trámite y guardar la información relevante en cada una.",
+      "Opción B: Guardar todos los documentos juntos en una sola carpeta sin orden.",
+      "Opción C: No guardar la información digital y confiar en recordarla.",
+      "Opción D: Compartir todos los documentos en un grupo de mensajería."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Organizar la información en carpetas te facilita encontrar lo que buscas cuando lo necesitas.",
+      "incorrect": "Una buena organización de tus archivos digitales te ahorrará tiempo y esfuerzo."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "1.3",
+    "level": "Básico 2",
+    "title": "Cómo renombrar un archivo descargado de un trámite",
+    "scenario": "Sofía ha descargado un comprobante de pago de un trámite en línea y el archivo tiene un nombre como 'download.pdf'.",
+    "options": [
+      "Opción A: Renombrarlo con un nombre descriptivo como 'Comprobante Pago Tramite X'.",
+      "Opción B: Dejar el nombre como 'download.pdf'.",
+      "Opción C: Eliminar el archivo después de verlo.",
+      "Opción D: Cambiarle el nombre a algo aleatorio."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Renombrar los archivos te ayuda a identificar su contenido rápidamente.",
+      "incorrect": "Dale a tus archivos nombres que te permitan saber qué contienen de forma sencilla."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.1",
+    "level": "Básico 2",
+    "title": "¿Qué debes hacer si tu teléfono se siente lento o muestra anuncios extraños?",
+    "scenario": "Luis, de 13 años en Bolivia, usa su teléfono para buscar información sobre sus tareas escolares. Últimamente, su teléfono está muy lento y le aparecen muchos anuncios que no había visto antes.",
+    "options": [
+      "Opción A: Descargar e instalar un antivirus y escanear el dispositivo.",
+      "Opción B: Ignorar los anuncios, pensando que desaparecerán solos.",
+      "Opción C: Compartir su teléfono con sus amigos para ver si a ellos también les pasa.",
+      "Opción D: Eliminar todas las aplicaciones, incluso las que necesita."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Un antivirus puede ayudarte a detectar y eliminar software malicioso que cause esos problemas.",
+      "incorrect": "Es importante proteger tus dispositivos de virus y software no deseado."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.1",
+    "level": "Básico 2",
+    "title": "Cómo proteger tu computadora al descargar archivos para trámites",
+    "scenario": "Ana, de 16 años en Venezuela, necesita descargar un formulario de un sitio web gubernamental para un trámite.",
+    "options": [
+      "Opción A: Asegurarse de que está descargando desde un sitio web oficial y tener un antivirus actualizado.",
+      "Opción B: Descargar el archivo sin importar de dónde venga.",
+      "Opción C: Desactivar el antivirus para que la descarga sea más rápida.",
+      "Opción D: Descargar el archivo y abrirlo inmediatamente sin pensarlo."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Descargar de fuentes confiables y tener un antivirus activo es fundamental para protegerte.",
+      "incorrect": "Sé cuidadoso al descargar archivos de internet, especialmente de sitios desconocidos."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.1",
+    "level": "Básico 2",
+    "title": "¿Qué debes hacer con las actualizaciones de software en tus dispositivos?",
+    "scenario": "Roberto, de 14 años en Guatemala, ve que su teléfono y computadora le notifican constantemente sobre actualizaciones de software.",
+    "options": [
+      "Opción A: Realizar las actualizaciones cuando sea posible para mantener los dispositivos seguros.",
+      "Opción B: Ignorar las actualizaciones, ya que a veces tardan mucho.",
+      "Opción C: Desactivar las notificaciones de actualización.",
+      "Opción D: Esperar a que alguien le diga si es necesario actualizar."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Las actualizaciones a menudo incluyen mejoras de seguridad que protegen tus dispositivos.",
+      "incorrect": "Las actualizaciones de software son importantes para mantener tus dispositivos protegidos."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.2",
+    "level": "Básico 2",
+    "title": "¿Qué información personal NO debes compartir en internet al hacer un trámite?",
+    "scenario": "María, de 17 años en Nicaragua, está llenando un formulario en línea para un trámite académico.",
+    "options": [
+      "Opción A: Tu contraseña de correo electrónico o redes sociales.",
+      "Opción B: Tu nombre y apellido.",
+      "Opción C: Tu fecha de nacimiento (si es requerida por el trámite oficial).",
+      "Opción D: Tu dirección de correo electrónico (si es requerida por el trámite oficial)."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Nunca compartas tus contraseñas, son la llave a tu información personal.",
+      "incorrect": "Sé muy cuidadoso con la información que compartes en línea. Algunas cosas, como tu contraseña, nunca debes compartirlas."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.2",
+    "level": "Básico 2",
+    "title": "Crear una contraseña segura para trámites en línea",
+    "scenario": "Juan, de 15 años en El Salvador, necesita crear una contraseña para acceder a un portal de trámites estudiantiles.",
+    "options": [
+      "Opción A: Usar una combinación de letras mayúsculas, minúsculas, números y símbolos, que no sea fácil de adivinar.",
+      "Opción B: Usar su fecha de nacimiento o su nombre.",
+      "Opción C: Usar la misma contraseña para todas sus cuentas.",
+      "Opción D: Escribir su contraseña en un papel cerca de la computadora."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Una contraseña fuerte es tu primera línea de defensa en línea.",
+      "incorrect": "Una contraseña débil puede poner en riesgo tu información personal. Crea contraseñas difíciles de adivinar."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.2",
+    "level": "Básico 2",
+    "title": "¿Qué hacer si te piden información personal sensible por correo electrónico para un trámite?",
+    "scenario": "Carlos, de 16 años en Honduras, recibe un correo que parece de una institución oficial, pidiéndole su número de identificación y otros datos sensibles para 'completar' un trámite.",
+    "options": [
+      "Opción A: No responder al correo y verificar directamente en el sitio web oficial de la institución si hay alguna información pendiente.",
+      "Opción B: Responder inmediatamente con la información solicitada para no perder el trámite.",
+      "Opción C: Reenviar el correo a sus amigos para preguntarles qué hacer.",
+      "Opción D: Hacer clic en cualquier enlace que venga en el correo."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Las instituciones oficiales raramente solicitan información sensible por correo electrónico. Siempre verifica la fuente.",
+      "incorrect": "Sé muy cauteloso con los correos que solicitan información personal. Es mejor verificar directamente con la institución."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.3",
+    "level": "Básico 2",
+    "title": "¿Cómo cuidar tu vista al pasar mucho tiempo frente a la pantalla buscando trámites?",
+    "scenario": "Sofía, de 15 años en Costa Rica, pasa varias horas buscando información sobre trámites de admisión a la universidad en su computadora.",
+    "options": [
+      "Opción A: Tomar descansos regulares, mirar a la distancia y ajustar el brillo de la pantalla.",
+      "Opción B: Seguir mirando la pantalla sin descanso hasta terminar.",
+      "Opción C: Acercarse mucho a la pantalla para ver mejor.",
+      "Opción D: Apagar la luz de la habitación para que la pantalla sea más visible."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Cuidar tu vista es importante cuando pasas tiempo frente a la pantalla.",
+      "incorrect": "Es importante cuidar tus ojos al usar dispositivos digitales. Toma descansos y ajusta la pantalla."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.3",
+    "level": "Básico 2",
+    "title": "¿Qué postura es recomendable al usar la computadora para trámites?",
+    "scenario": "Juan, de 17 años en Panamá, está llenando un formulario largo en línea para un trámite de beca.",
+    "options": [
+      "Opción A: Sentarse con la espalda recta, los pies apoyados en el suelo y la pantalla a la altura de los ojos.",
+      "Opción B: Sentarse encorvado y con el cuello inclinado hacia la pantalla.",
+      "Opción C: Acostarse en la cama con la computadora sobre las piernas.",
+      "Opción D: Usar la computadora en una superficie muy baja que lo obligue a doblar mucho la espalda."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Una buena postura ayuda a prevenir dolores y molestias.",
+      "incorrect": "Presta atención a tu postura al usar dispositivos digitales para cuidar tu salud."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.3",
+    "level": "Básico 2",
+    "title": "¿Cómo evitar distracciones y concentrarte al realizar trámites en línea?",
+    "scenario": "Ana, de 14 años en República Dominicana, está intentando completar un trámite escolar en línea, pero constantemente se distrae con notificaciones de su teléfono y redes sociales.",
+    "options": [
+      "Opción A: Silenciar las notificaciones innecesarias y concentrarse en la tarea del trámite.",
+      "Opción B: Dejar las notificaciones activadas para no perderse de nada.",
+      "Opción C: Tener varias pestañas de redes sociales abiertas al mismo tiempo que el trámite.",
+      "Opción D: Pausar el trámite cada vez que llega una notificación."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! Minimizar las distracciones te ayuda a concentrarte y completar tus trámites de manera eficiente.",
+      "incorrect": "Enfocarte en el trámite te permitirá completarlo más rápido y sin errores."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.4",
+    "level": "Básico 2",
+    "title": "¿Qué puedes hacer para reducir el impacto ambiental de usar dispositivos digitales para trámites?",
+    "scenario": "Roberto, de 16 años en Cuba, realiza algunos trámites en línea y se pregunta cómo puede ser más amigable con el medio ambiente.",
+    "options": [
+      "Opción A: Desconectar los cargadores cuando no los está usando y reducir la impresión innecesaria.",
+      "Opción B: Dejar los cargadores conectados todo el tiempo.",
+      "Opción C: Imprimir todos los documentos de los trámites, incluso si no es necesario.",
+      "Opción D: Mantener la pantalla del dispositivo con el brillo al máximo siempre."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Correcto! Pequeñas acciones como ahorrar energía y reducir el uso de papel contribuyen al cuidado del medio ambiente.",
+      "incorrect": "Piensa en cómo puedes usar tus dispositivos de manera más eficiente para ayudar al medio ambiente."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.4",
+    "level": "Básico 2",
+    "title": "¿Cómo extender la vida útil de tus dispositivos electrónicos?",
+    "scenario": "María, de 15 años en Chile, utiliza su tableta para buscar información sobre trámites educativos.",
+    "options": [
+      "Opción A: Cuidar la batería, evitar la exposición a temperaturas extremas y mantener el software actualizado.",
+      "Opción B: Dejar el dispositivo cargando todo el tiempo.",
+      "Opción C: Exponer el dispositivo al sol para que se cargue más rápido.",
+      "Opción D: Desinstalar las actualizaciones de software."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Muy bien! Cuidar tus dispositivos prolonga su vida útil y reduce la necesidad de reemplazarlos.",
+      "incorrect": "Un buen cuidado de tus dispositivos electrónicos ayuda a disminuir la generación de residuos."
+    }
+  },
+  {
+    "type": "multiple-choice",
+    "competence": "4.4",
+    "level": "Básico 2",
+    "title": "¿Qué hacer con los dispositivos electrónicos viejos o dañados que ya no usas para trámites?",
+    "scenario": "Luis, de 17 años en Colombia, tiene un teléfono viejo que ya no funciona y no lo usa para trámites ni nada más.",
+    "options": [
+      "Opción A: Buscar puntos de recolección especializados en residuos electrónicos para su correcto desecho o reciclaje.",
+      "Opción B: Tirarlo a la basura común.",
+      "Opción C: Guardarlo en un cajón sin saber qué hacer con él.",
+      "Opción D: Desarmarlo y tirar las piezas en diferentes lugares."
+    ],
+    "correctAnswerIndex": 0,
+    "feedback": {
+      "correct": "¡Excelente! El correcto reciclaje de residuos electrónicos es importante para el medio ambiente.",
+      "incorrect": "Los dispositivos electrónicos contienen materiales que pueden ser dañinos si no se desechan correctamente. Busca opciones de reciclaje."
+    }
+  }
+]
