@@ -32,3 +32,4 @@ coverage/
 
 # Typescript build (si lo compilas)
 *.tsbuildinfo
+ref

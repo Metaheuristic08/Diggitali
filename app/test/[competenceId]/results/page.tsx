@@ -286,18 +286,18 @@ function TestResultsContent() {
           <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
               <div className="p-3 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200">
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">1</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Competencia</div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{areaCompleted ? 3 : 1}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Competencias" : "Competencia"}</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl sm:rounded-2xl shadow-sm border border-green-200">
-                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{passed ? 1 : 0}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Correcta</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_,i) => userAnswers[i] === testQuestions[i]?.correctAnswerIndex).length : passed ? 1 : 0}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Correctas" : "Correcta"}</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl sm:rounded-2xl shadow-sm border border-red-200">
-                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{passed ? 0 : 1}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">Incorrecta</div>
+                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_,i) => userAnswers[i] !== testQuestions[i]?.correctAnswerIndex).length : passed ? 0 : 1}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Incorrectas" : "Incorrecta"}</div>
               </div>
             </div>
 

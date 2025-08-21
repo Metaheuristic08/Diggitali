@@ -10,15 +10,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuración de Firebase (usando el SDK web config)
-const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: ""
-};
+ }
+
 
 // Mapeo de categorías
 const categoryMapping = {

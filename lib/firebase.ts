@@ -5,15 +5,7 @@ import { getStorage, type FirebaseStorage } from "firebase/storage"
 import { getAnalytics, type Analytics } from "firebase/analytics"
 
 
-const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: "",
-}
+
 
 
 let app: FirebaseApp | undefined
@@ -38,14 +30,14 @@ try {
   if (app) {
     auth = getAuth(app)
     db = getFirestore(app)
-  storage = getStorage(app)
+    storage = getStorage(app)
 
-    
+
     if (typeof window !== "undefined") {
       analytics = getAnalytics(app)
     }
 
-    
+
     provider = new GoogleAuthProvider()
     provider.setCustomParameters({
       prompt: "select_account",
