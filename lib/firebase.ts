@@ -6,46 +6,48 @@ import { getAnalytics, type Analytics } from "firebase/analytics"
 
 
 const firebaseConfig = {
+  apiKey: "AIzaSyAahNL2-uxj6wOGieWXdDUvcEx9Gdka-a0",
+  authDomain: "ladico-3eef2.firebaseapp.com",
+  projectId: "ladico-3eef2",
+  storageBucket: "ladico-3eef2.firebasestorage.app",
+  messagingSenderId: "622858666638",
+  appId: "1:622858666638:web:f512807a2b6550f59d3fdf",
+  measurementId: "G-HB4GCM2JX3"
+};
 
 
-
+// Inicialización segura de Firebase solo en el cliente
 let app: FirebaseApp | undefined
-try {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig)
-  } else {
-    app = getApps()[0]
-  }
-} catch (error) {
-  console.error("Error initializing Firebase app:", error)
-}
-
-
 let auth: Auth | undefined
 let db: Firestore | undefined
 let analytics: Analytics | null = null
 let storage: FirebaseStorage | undefined
 let provider: GoogleAuthProvider | undefined
 
-try {
-  if (app) {
-    auth = getAuth(app)
-    db = getFirestore(app)
-    storage = getStorage(app)
-
-
-    if (typeof window !== "undefined") {
-      analytics = getAnalytics(app)
+// Inicializa Firebase solo en el cliente
+if (typeof window !== 'undefined') {
+  try {
+    // Evitar múltiples inicializaciones
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig)
+    } else {
+      app = getApps()[0]
     }
 
-
-    provider = new GoogleAuthProvider()
-    provider.setCustomParameters({
-      prompt: "select_account",
-    })
+    if (app) {
+      auth = getAuth(app)
+      db = getFirestore(app)
+      storage = getStorage(app)
+      analytics = getAnalytics(app)
+      
+      provider = new GoogleAuthProvider()
+      provider.setCustomParameters({
+        prompt: "select_account",
+      })
+    }
+  } catch (error) {
+    console.error("Error initializing Firebase services:", error)
   }
-} catch (error) {
-  console.error("Error initializing Firebase services:", error)
 }
 
 

@@ -15,6 +15,7 @@ export async function loadCompetences(): Promise<Competence[]> {
   // Verificar cache válido
   const now = Date.now()
   if (competencesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    console.log(`📋 Usando caché de competencias (${competencesCache.length} items)`)
     return competencesCache
   }
 
@@ -24,11 +25,11 @@ export async function loadCompetences(): Promise<Competence[]> {
   }
 
   try {
-    
+
     const predefinedCompetences = ["1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3", "4.4"]
     const competenceMap = new Map<string, Competence>()
 
-    
+
     predefinedCompetences.forEach((code) => {
       const competence: Competence = {
         id: code,
@@ -41,14 +42,14 @@ export async function loadCompetences(): Promise<Competence[]> {
       competenceMap.set(code, competence)
     })
 
-    
+
     const questionsSnapshot = await getDocs(collection(db, "questions"))
     questionsSnapshot.forEach((doc) => {
       const questionData = doc.data()
       const competenceCode = questionData.competence
 
       if (competenceCode && !competenceMap.has(competenceCode)) {
-        
+
         const competence: Competence = {
           id: competenceCode,
           code: competenceCode,
@@ -61,15 +62,16 @@ export async function loadCompetences(): Promise<Competence[]> {
       }
     })
 
-    
+
     const competences = Array.from(competenceMap.values()).sort((a, b) => a.code.localeCompare(b.code))
 
     // Actualizar cache
     competencesCache = competences
     cacheTimestamp = now
-    
+
     console.log(`✅ Se cargaron ${competences.length} competencias desde Firebase`)
-    return competences  } catch (error) {
+    return competences
+  } catch (error) {
     console.error("Error al cargar competencias:", error)
     return []
   }
@@ -174,12 +176,12 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
   }
 
   try {
-    
+
     const q = query(
       collection(db, "questions"),
       where("competence", "==", competenceId),
       where("level", "in", [`${level} 1`, `${level} 2`]),
-      limit(count * 2) 
+      limit(count * 2)
     )
 
     const querySnapshot = await getDocs(q)
@@ -192,14 +194,14 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
       } as Question)
     })
 
-    
+
     if (loadedQuestions.length >= count) {
       return loadedQuestions
-        .sort(() => 0.5 - Math.random()) 
-        .slice(0, count) 
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count)
     }
 
-    
+
     const fallbackQuery = query(
       collection(db, "questions"),
       where("competence", "==", competenceId),
@@ -222,11 +224,11 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
         .slice(0, count)
     }
 
-    
+
     throw new Error(`No hay suficientes preguntas para la competencia ${competenceId}. Se requieren al menos ${count} preguntas.`)
   } catch (error) {
     console.error("Error al cargar preguntas:", error)
-    
+
     throw error
   }
 }
@@ -243,7 +245,7 @@ export async function updateQuestionStats(questionId: string, wasCorrect: boolea
   try {
     const questionRef = doc(db, "questions", questionId)
 
-    
+
     const questionSnap = await getDoc(questionRef)
     if (!questionSnap.exists()) {
       console.error(`La pregunta con ID ${questionId} no existe`)

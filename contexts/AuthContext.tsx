@@ -71,9 +71,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   if (docSnapshot.exists()) {
                     setUserData(docSnapshot.data() as UserData)
                   }
+                  setLoading(false)
                 }, (error) => {
                   console.error("Error en listener del documento del usuario:", error)
+                  setLoading(false)
                 })
+              } else {
+                setLoading(false)
               }
             } else {
               setUser(null)
@@ -83,10 +87,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 userDocUnsubscribe()
                 userDocUnsubscribe = undefined
               }
+              setLoading(false)
             }
           } catch (error) {
             console.error("Error in auth state change:", error)
-          } finally {
             setLoading(false)
           }
         })
@@ -96,10 +100,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    const timer = setTimeout(initAuth, 100)
+    // Ejecutar inmediatamente sin timeout
+    initAuth()
 
     return () => {
-      clearTimeout(timer)
       if (authUnsubscribe) {
         authUnsubscribe()
       }

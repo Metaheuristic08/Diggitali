@@ -5,6 +5,7 @@ import "./globals.css"
 import "../styles/globals.css"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { Toaster } from "@/components/ui/toaster"
+import ClientWrapper from "@/components/ClientWrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,10 +22,13 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        {/* Usar ClientWrapper para garantizar que AuthProvider solo se renderice del lado del cliente */}
+        <ClientWrapper>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ClientWrapper>
       </body>
     </html>
   )

@@ -5,7 +5,7 @@ import { collection, query, where, onSnapshot, type Unsubscribe } from "firebase
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/contexts/AuthContext"
 import type { Competence } from "@/types"
-import { loadCompetences } from "@/services/questionsService"
+import { useCompetences } from "./useCompetences"
 
 type LevelName = "Básico" | "Intermedio" | "Avanzado"
 
@@ -43,130 +43,114 @@ export interface UseLevelProgressResult {
 
 export function useLevelProgress(): UseLevelProgressResult {
   const { user } = useAuth()
+  const { competences, loading: loadingCompetences } = useCompetences()
   const [loading, setLoading] = useState(true)
-  const [competences, setCompetences] = useState<Competence[]>([])
-  const [perCompetenceLevel, setPerCompetenceLevel] = useState<CompetenceLevelMap>({} as CompetenceLevelMap)
+  const [perCompetenceLevel, setPerCompetenceLevel] = useState<CompetenceLevelMap>({})
 
+  // Efecto para escuchar cambios en las sesiones del usuario
   useEffect(() => {
-    if (!user?.uid || !db) {
+    if (!user?.uid || !db || loadingCompetences) {
       setLoading(false)
       return
     }
 
-    setLoading(true)
     let unsubscribe: Unsubscribe | null = null
 
-    const run = async () => {
-      try {
-        // Cargar competencias solo una vez usando el cache
-        const comps = await loadCompetences()
-        setCompetences(comps)
-
-        // Configurar listener en tiempo real para las sesiones del usuario
-        const q = query(collection(db!, "testSessions"), where("userId", "==", user.uid))
-        
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          // Inicializar estructura
-          const initStatus = (): LevelStatus => ({ completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 })
-          const map: CompetenceLevelMap = {} as CompetenceLevelMap
-          for (const c of comps) {
-            map[c.id] = {
-              "Básico": initStatus(),
-              "Intermedio": initStatus(),
-              "Avanzado": initStatus(),
-            }
-          }
-
-          snapshot.forEach((docSnap) => {
-            const data: any = docSnap.data()
-            const cid: string | undefined = data?.competence
-            if (!cid || !map[cid]) return
-
-            const lvlRaw: string = data?.level || "Básico"
-            // Normalizar posibles valores previos "basico" → "Básico"
-            const levelNorm = normalizeLevel(lvlRaw)
-            if (!levelNorm) return
-
-            const answers: Array<number | null> = Array.isArray(data?.answers) ? data.answers : []
-            const answered = answers.filter(a => a !== null && a !== undefined).length
-            const total = Math.max(3, answers.length || 3)
-            const score: number = typeof data?.score === "number" ? data.score : Math.round((answered / total) * 100)
-            const completed = typeof data?.endTime !== "undefined" && score === 100 // 3/3 correctas
-            const inProgress = typeof data?.endTime === "undefined" || data?.endTime === null
-
-            const current = map[cid][levelNorm]
-            // Consolidar: si hay múltiples sesiones, preferimos completado; luego inProgress con mayor answered
-            if (completed) {
-              map[cid][levelNorm] = { completed: true, inProgress: false, answered: total, total, progressPct: 100 }
-            } else if (inProgress && !current.completed) {
-              if (answered >= (current.answered || 0)) {
-                map[cid][levelNorm] = {
-                  completed: false,
-                  inProgress: true,
-                  answered,
-                  total,
-                  progressPct: Math.round((answered / total) * 100),
-                }
-              }
-            } else if (!current.completed && !current.inProgress) {
-              // Mantener inicial 0%
-            }
-          })
-
-          setPerCompetenceLevel(map)
-          setLoading(false)
-          
-          // Log consolidado de datos rescatados
-          const totalSessions = snapshot.size
-          const completedLevels = Object.values(map).reduce((acc, comp) => {
-            return acc + Object.values(comp).filter(level => level.completed).length
-          }, 0)
-          const inProgressLevels = Object.values(map).reduce((acc, comp) => {
-            return acc + Object.values(comp).filter(level => level.inProgress).length
-          }, 0)
-          
-          // Mostrar detalles de las sesiones para debug
-          console.log(`📊 DATOS FIREBASE: ${totalSessions} sesiones → ${completedLevels} completados, ${inProgressLevels} en progreso`)
-          
-          if (totalSessions > 0) {
-            const sessionDetails = snapshot.docs.map(doc => {
-              const data = doc.data()
-              return `${data.competence || 'N/A'}/${data.level || 'N/A'} (${data.endTime ? 'terminada' : 'en curso'})`
-            })
-            console.log(`📋 Sesiones encontradas:`, sessionDetails)
-          }
-        }, (error) => {
-          console.error("Error en listener de testSessions:", error)
-          setLoading(false)
-        })
-
-      } catch (error) {
-        console.error("Error en useLevelProgress:", error)
-        setLoading(false)
-      }
-    }
+    // Configurar listener en tiempo real para las sesiones del usuario
+    const q = query(collection(db, "testSessions"), where("userId", "==", user.uid))
     
-    run()
+    unsubscribe = onSnapshot(q, (snapshot) => {
+      // Inicializar estructura
+      const initStatus = (): LevelStatus => ({ completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 })
+      const map: CompetenceLevelMap = {} as CompetenceLevelMap
+      for (const c of competences) {
+        map[c.id] = {
+          "Básico": initStatus(),
+          "Intermedio": initStatus(),
+          "Avanzado": initStatus(),
+        }
+      }
 
-    // Cleanup function
+      // Agrupar sesiones por competencia/nivel para consolidación
+      const sessionGroups: Record<string, Array<{doc: any, data: any}>> = {}
+      
+      snapshot.forEach((docSnap) => {
+        const data: any = docSnap.data()
+        const cid: string | undefined = data?.competence
+        if (!cid || !map[cid]) return
+
+        const lvlRaw: string = data?.level || "Básico"
+        const levelNorm = normalizeLevel(lvlRaw)
+        if (!levelNorm) return
+
+        const key = `${cid}:${levelNorm}`
+        if (!sessionGroups[key]) {
+          sessionGroups[key] = []
+        }
+        sessionGroups[key].push({ doc: docSnap, data })
+      })
+
+      // Consolidar cada grupo de sesiones
+      Object.entries(sessionGroups).forEach(([key, sessions]) => {
+        const [cid, levelNorm] = key.split(':') as [string, LevelName]
+        
+        if (sessions.length > 1) {
+          console.warn(`⚠️ Encontradas ${sessions.length} sesiones duplicadas para ${cid}/${levelNorm}`)
+        }
+
+        // Aplicar lógica de consolidación mejorada
+        const consolidatedStatus = consolidateSessionGroup(sessions)
+        map[cid][levelNorm] = consolidatedStatus
+      })
+
+      setPerCompetenceLevel(map)
+      setLoading(false)
+      
+      // Log consolidado de datos rescatados
+      const totalSessions = snapshot.size
+      const completedLevels = Object.values(map).reduce((acc, comp) => {
+        return acc + Object.values(comp).filter(level => level.completed).length
+      }, 0)
+      const inProgressLevels = Object.values(map).reduce((acc, comp) => {
+        return acc + Object.values(comp).filter(level => level.inProgress).length
+      }, 0)
+      
+      // Mostrar detalles de las sesiones para debug
+      console.log(`📊 DATOS FIREBASE: ${totalSessions} sesiones → ${completedLevels} completados, ${inProgressLevels} en progreso`)
+      
+      if (totalSessions > 0) {
+        const sessionDetails = snapshot.docs.map(doc => {
+          const data = doc.data()
+          return `${data.competence || 'N/A'}/${data.level || 'N/A'} (${data.endTime ? 'terminada' : 'en curso'})`
+        })
+        console.log(`📋 Sesiones encontradas:`, sessionDetails)
+      }
+    }, (error) => {
+      console.error("Error en listener de testSessions:", error)
+      setLoading(false)
+    })
+
     return () => {
       if (unsubscribe) {
         unsubscribe()
       }
     }
-  }, [user?.uid])
+  }, [user?.uid, competences, loadingCompetences])
 
+  // Mapa de dimensiones por competencia
   const dimensionByCompetence = useMemo(() => {
     const out: Record<string, string> = {}
     for (const c of competences) out[c.id] = c.dimension
     return out
   }, [competences])
 
-  const areaStats: AreaStatsByLevel = useMemo(() => {
+  // Estadísticas por área y nivel
+  const areaStats = useMemo(() => {
     const stats: AreaStatsByLevel = {}
     for (const c of competences) {
       const dim = c.dimension
-      stats[dim] ||= { "Básico": { completedCount: 0, totalCount: 0 }, "Intermedio": { completedCount: 0, totalCount: 0 }, "Avanzado": { completedCount: 0, totalCount: 0 } }
+      if (!stats[dim]) stats[dim] = { "Básico": { completedCount: 0, totalCount: 0 }, "Intermedio": { completedCount: 0, totalCount: 0 }, "Avanzado": { completedCount: 0, totalCount: 0 } }
+      
       for (const lvl of LEVELS) {
         stats[dim][lvl].totalCount += 1
         if (perCompetenceLevel[c.id]?.[lvl]?.completed) stats[dim][lvl].completedCount += 1
@@ -175,50 +159,174 @@ export function useLevelProgress(): UseLevelProgressResult {
     return stats
   }, [competences, perCompetenceLevel])
 
+  // Función para determinar el nivel actual de un área
   const currentAreaLevel = (dimension: string): LevelName => {
-    // Encontrar todas las competencias del área
     const areaCompetences = competences.filter(c => c.dimension === dimension)
+    if (!areaCompetences.length) return "Básico"
     
-    // Verificar nivel básico
-    const basicCompleted = areaCompetences.every(c => 
+    const basicCompleted = areaCompetences.every(c =>
       perCompetenceLevel[c.id]?.["Básico"]?.completed === true
     )
     
-    // Verificar nivel intermedio
-    const intermediateCompleted = areaCompetences.every(c => 
+    const interCompleted = areaCompetences.every(c => 
       perCompetenceLevel[c.id]?.["Intermedio"]?.completed === true
     )
     
-    // Si completó intermedio, está en avanzado
-    if (intermediateCompleted) {
-      return "Avanzado"
-    }
-    
-    // Si completó básico, está en intermedio
-    if (basicCompleted) {
-      return "Intermedio"
-    }
-    
-    // Si no ha completado básico, está en básico
+    if (interCompleted) return "Avanzado"
+    if (basicCompleted) return "Intermedio"
     return "Básico"
   }
 
+  // Función para sugerir la siguiente competencia a intentar
   const nextCompetenceToAttempt = (dimension: string, level: LevelName): string | null => {
-    // Buscar la primera competencia del área cuyo nivel no esté completado
-    const comps = competences.filter(c => c.dimension === dimension).sort((a, b) => a.code.localeCompare(b.code))
-    for (const c of comps) {
-      if (!perCompetenceLevel[c.id]?.[level]?.completed) return c.id
+    const areaCompetences = competences.filter(c => c.dimension === dimension)
+    if (!areaCompetences.length) return null
+    
+    // 1. Primero, buscar competencias incompletas del nivel actual
+    const incompleteSameLevel = areaCompetences.find(c => 
+      !perCompetenceLevel[c.id]?.[level]?.completed
+    )
+    if (incompleteSameLevel) return incompleteSameLevel.id
+    
+    // 2. Si todas están completas en el nivel actual, buscar en el siguiente nivel
+    const nextLevelIndex = LEVELS.indexOf(level) + 1
+    if (nextLevelIndex < LEVELS.length) {
+      const nextLevel = LEVELS[nextLevelIndex]
+      const incompleteNextLevel = areaCompetences.find(c => 
+        !perCompetenceLevel[c.id]?.[nextLevel]?.completed
+      )
+      if (incompleteNextLevel) return incompleteNextLevel.id
     }
+    
     return null
   }
 
-  return { loading, competences, dimensionByCompetence, perCompetenceLevel, areaStats, currentAreaLevel, nextCompetenceToAttempt }
+  return {
+    loading: loading || loadingCompetences,
+    competences,
+    dimensionByCompetence,
+    perCompetenceLevel,
+    areaStats,
+    currentAreaLevel,
+    nextCompetenceToAttempt
+  }
 }
 
 function normalizeLevel(raw: string): LevelName | null {
-  const r = raw.toLowerCase()
-  if (r.startsWith("b")) return "Básico"
-  if (r.startsWith("i")) return "Intermedio"
-  if (r.startsWith("a")) return "Avanzado"
+  const normalized = raw.toLowerCase()
+  if (normalized.includes("básico") || normalized.includes("basico")) return "Básico"
+  if (normalized.includes("intermedio")) return "Intermedio"
+  if (normalized.includes("avanzado")) return "Avanzado"
   return null
+}
+
+/**
+ * Consolida un grupo de sesiones duplicadas para la misma competencia/nivel
+ * Aplica la siguiente priorización:
+ * 1. Sesiones completadas (endTime definido y score = 100)
+ * 2. Sesiones en progreso con mayor número de respuestas
+ * 3. Sesiones más recientes
+ */
+function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelStatus {
+  const initStatus = (): LevelStatus => ({ completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 })
+  
+  if (sessions.length === 0) {
+    return initStatus()
+  }
+
+  if (sessions.length === 1) {
+    // Solo una sesión, procesarla directamente
+    return processSessionData(sessions[0].data)
+  }
+
+  console.log(`🔄 Consolidando ${sessions.length} sesiones duplicadas...`)
+
+  // Separar sesiones completadas de las en progreso
+  const processedSessions = sessions.map(s => ({
+    ...s,
+    processed: processSessionData(s.data)
+  }))
+
+  const completedSessions = processedSessions.filter(s => s.processed.completed)
+  const inProgressSessions = processedSessions.filter(s => s.processed.inProgress)
+  const initialSessions = processedSessions.filter(s => !s.processed.completed && !s.processed.inProgress)
+
+  // Prioridad 1: Sesiones completadas (tomar la más reciente)
+  if (completedSessions.length > 0) {
+    const latest = completedSessions.sort((a, b) => {
+      const timeA = a.data.endTime || a.data.startTime
+      const timeB = b.data.endTime || b.data.startTime
+      return new Date(timeB).getTime() - new Date(timeA).getTime()
+    })[0]
+    
+    console.log("✅ Usando sesión completada más reciente")
+    return latest.processed
+  }
+
+  // Prioridad 2: Sesiones en progreso (la que tiene más respuestas)
+  if (inProgressSessions.length > 0) {
+    const bestInProgress = inProgressSessions.sort((a, b) => {
+      // Primero por número de respuestas
+      if (a.processed.answered !== b.processed.answered) {
+        return b.processed.answered - a.processed.answered
+      }
+      // Si empatan, por más reciente
+      return new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
+    })[0]
+    
+    console.log(`🔄 Usando sesión en progreso con ${bestInProgress.processed.answered} respuestas`)
+    return bestInProgress.processed
+  }
+
+  // Prioridad 3: Sesiones iniciales (la más reciente)
+  if (initialSessions.length > 0) {
+    const latest = initialSessions.sort((a, b) => 
+      new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
+    )[0]
+    
+    console.log("📅 Usando sesión inicial más reciente")
+    return latest.processed
+  }
+
+  // Fallback
+  return initStatus()
+}
+
+/**
+ * Procesa los datos de una sesión individual y retorna el LevelStatus correspondiente
+ */
+function processSessionData(data: any): LevelStatus {
+  const answers: Array<number | null> = Array.isArray(data?.answers) ? data.answers : []
+  const answered = answers.filter(a => a !== null && a !== undefined).length
+  const total = Math.max(3, answers.length || 3)
+  const score: number = typeof data?.score === "number" ? data.score : Math.round((answered / total) * 100)
+  const hasEndTime = typeof data?.endTime !== "undefined" && data?.endTime !== null
+  const completed = hasEndTime && score === 100 // 3/3 correctas
+  const inProgress = !hasEndTime && answered > 0
+
+  if (completed) {
+    return {
+      completed: true,
+      inProgress: false,
+      answered: total,
+      total,
+      progressPct: 100
+    }
+  } else if (inProgress) {
+    return {
+      completed: false,
+      inProgress: true,
+      answered,
+      total,
+      progressPct: Math.round((answered / total) * 100)
+    }
+  } else {
+    return {
+      completed: false,
+      inProgress: false,
+      answered: 0,
+      total,
+      progressPct: 0
+    }
+  }
 }
