@@ -5,6 +5,7 @@ import { getStorage, type FirebaseStorage } from "firebase/storage"
 import { getAnalytics, type Analytics } from "firebase/analytics"
 
 
+const firebaseConfig = {
 
 
 

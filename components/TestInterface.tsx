@@ -65,6 +65,32 @@ export default function TestInterface({ testSession, onAnswerSubmit, onTestCompl
   const handleAnswerSelect = (answerIndex: number) => {
     if (!isQuestionLocked && !isQuestionInvalidated) {
       setSelectedAnswer(answerIndex)
+      
+      // Auto-enviar respuesta y completar test automáticamente en última pregunta
+      onAnswerSubmit(answerIndex, currentIndex)
+      
+      // Si es la última pregunta, completar automáticamente el test
+      if (currentIndex === totalQuestions - 1) {
+        setTimeout(() => {
+          const finalSession = {
+            ...testSession,
+            answers: testSession.answers.map((answer, index) => (index === currentIndex ? answerIndex : answer)),
+          }
+          onTestComplete(finalSession)
+        }, 500) // Pequeño delay para mejor UX
+      } else {
+        // Si no es la última pregunta, avanzar automáticamente
+        setTimeout(() => {
+          const nextIndex = currentIndex + 1
+          setCurrentIndex(nextIndex)
+          setSelectedAnswer(testSession.answers[nextIndex])
+          setIsQuestionLocked(false)
+          setShowWarning(false)
+          setAttemptsLeft(3)
+          setIsQuestionInvalidated(false)
+          setShowInvalidationAlert(false)
+        }, 800) // Delay más largo para que vean la respuesta seleccionada
+      }
     }
   }
 
@@ -90,6 +116,7 @@ export default function TestInterface({ testSession, onAnswerSubmit, onTestCompl
   }
 
   const handleNext = () => {
+    // Solo para casos donde el usuario usa el botón Siguiente manualmente
     if (selectedAnswer !== null && !isQuestionLocked) {
       onAnswerSubmit(selectedAnswer, currentIndex)
     }

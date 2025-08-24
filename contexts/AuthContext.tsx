@@ -10,7 +10,7 @@ import {
   onAuthStateChanged,
   updateProfile,
 } from "firebase/auth"
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, onSnapshot, type Unsubscribe } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 
 interface UserData {
@@ -49,31 +49,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined
+    let authUnsubscribe: (() => void) | undefined
+    let userDocUnsubscribe: Unsubscribe | undefined
 
     const initAuth = async () => {
       try {
-        
         if (!auth) {
           console.error("Firebase Auth not initialized")
           setLoading(false)
           return
         }
 
-        unsubscribe = onAuthStateChanged(auth, async (user) => {
+        authUnsubscribe = onAuthStateChanged(auth, async (user) => {
           try {
             if (user) {
               setUser(user)
               
+              // Configurar listener en tiempo real para el documento del usuario
               if (db) {
-                const userDoc = await getDoc(doc(db, "users", user.uid))
-                if (userDoc.exists()) {
-                  setUserData(userDoc.data() as UserData)
-                }
+                userDocUnsubscribe = onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
+                  if (docSnapshot.exists()) {
+                    setUserData(docSnapshot.data() as UserData)
+                  }
+                }, (error) => {
+                  console.error("Error en listener del documento del usuario:", error)
+                })
               }
             } else {
               setUser(null)
               setUserData(null)
+              // Limpiar listener del documento del usuario si existe
+              if (userDocUnsubscribe) {
+                userDocUnsubscribe()
+                userDocUnsubscribe = undefined
+              }
             }
           } catch (error) {
             console.error("Error in auth state change:", error)
@@ -87,13 +96,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    
     const timer = setTimeout(initAuth, 100)
 
     return () => {
       clearTimeout(timer)
-      if (unsubscribe) {
-        unsubscribe()
+      if (authUnsubscribe) {
+        authUnsubscribe()
+      }
+      if (userDocUnsubscribe) {
+        userDocUnsubscribe()
       }
     }
   }, [])

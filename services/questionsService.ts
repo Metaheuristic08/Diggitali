@@ -2,11 +2,22 @@ import { db } from "@/lib/firebase"
 import type { Question, Competence } from "@/types"
 import { collection, query, where, getDocs, updateDoc, doc, increment, getDoc, orderBy, limit } from "firebase/firestore"
 
+// Cache global para competencias
+let competencesCache: Competence[] | null = null
+let cacheTimestamp: number = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+
 /**
  * Carga todas las competencias disponibles
  * Se incluyen todas las competencias predefinidas, independientemente de si tienen preguntas o no
  */
 export async function loadCompetences(): Promise<Competence[]> {
+  // Verificar cache válido
+  const now = Date.now()
+  if (competencesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    return competencesCache
+  }
+
   if (!db) {
     console.error("Firestore no está inicializado")
     return []
@@ -53,10 +64,12 @@ export async function loadCompetences(): Promise<Competence[]> {
     
     const competences = Array.from(competenceMap.values()).sort((a, b) => a.code.localeCompare(b.code))
 
-    console.log(`✅ Se cargaron ${competences.length} competencias (${predefinedCompetences.length} predefinidas)`)
-    return competences
-
-  } catch (error) {
+    // Actualizar cache
+    competencesCache = competences
+    cacheTimestamp = now
+    
+    console.log(`✅ Se cargaron ${competences.length} competencias desde Firebase`)
+    return competences  } catch (error) {
     console.error("Error al cargar competencias:", error)
     return []
   }

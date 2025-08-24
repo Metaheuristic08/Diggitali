@@ -2,7 +2,9 @@
 import { initializeApp } from "firebase/app"
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore"
 
+const firebaseConfig = {
 
+};
 
 
 const app = initializeApp(firebaseConfig)

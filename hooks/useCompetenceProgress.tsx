@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, type Unsubscribe } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserResult } from '@/types'
@@ -19,28 +19,25 @@ export function useCompetenceProgress(): CompetenceProgressData {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    const fetchUserResults = async () => {
-      if (!user?.uid || !db) {
-        setLoading(false)
-        return
-      }
+    if (!user?.uid || !db) {
+      setLoading(false)
+      return
+    }
 
-      try {
-        setLoading(true)
-        
-        
-        const q = query(collection(db, "userResults"), where("userId", "==", user.uid))
-        const querySnapshot = await getDocs(q)
-        
-        
+    setLoading(true)
+    let unsubscribe: Unsubscribe | null = null
+
+    try {
+      // Configurar listener en tiempo real para los resultados del usuario
+      const q = query(collection(db, "userResults"), where("userId", "==", user.uid))
+      
+      unsubscribe = onSnapshot(q, (querySnapshot) => {
         const competenceProgress: Record<string, { passed: number, total: number }> = {}
         
         querySnapshot.forEach((doc) => {
           const result = doc.data() as UserResult
           
-          
           const competenceResults: Record<string, { correct: number, total: number }> = {}
-          
           
           result.respuestas.forEach(respuesta => {
             if (!competenceResults[respuesta.competence]) {
@@ -52,7 +49,6 @@ export function useCompetenceProgress(): CompetenceProgressData {
               competenceResults[respuesta.competence].correct++
             }
           })
-          
           
           Object.entries(competenceResults).forEach(([competence, data]) => {
             if (!competenceProgress[competence]) {
@@ -67,15 +63,12 @@ export function useCompetenceProgress(): CompetenceProgressData {
           })
         })
         
-        
         const progressPercentages: Record<string, number> = {}
         
         Object.entries(competenceProgress).forEach(([competence, counts]) => {
-          
           if (counts.passed > 0) {
             progressPercentages[competence] = 100
           } else if (counts.total > 0) {
-            
             progressPercentages[competence] = 25
           } else {
             progressPercentages[competence] = 0
@@ -84,14 +77,25 @@ export function useCompetenceProgress(): CompetenceProgressData {
         
         setProgress(progressPercentages)
         setLoading(false)
-      } catch (err) {
+        setError(null)
+      }, (err) => {
         console.error("Error al cargar el progreso de las competencias:", err)
         setError(err instanceof Error ? err : new Error('Error desconocido'))
         setLoading(false)
+      })
+      
+    } catch (err) {
+      console.error("Error al configurar listener:", err)
+      setError(err instanceof Error ? err : new Error('Error desconocido'))
+      setLoading(false)
+    }
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
       }
     }
-    
-    fetchUserResults()
   }, [user?.uid])
   
   return { progress, loading, error }

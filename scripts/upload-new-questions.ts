@@ -4,6 +4,7 @@ import { getFirestore, collection, addDoc, query, where, getDocs } from "firebas
 import * as fs from 'fs'
 import * as path from 'path'
 
+const firebaseConfig = {
 
 
 const app = initializeApp(firebaseConfig)

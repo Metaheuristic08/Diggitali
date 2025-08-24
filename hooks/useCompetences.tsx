@@ -21,10 +21,11 @@ export function useCompetences(): UseCompetencesResult {
         setLoading(true)
         setError(null)
         
+        // Usar loadCompetences que ahora tiene cache implementado
         const loadedCompetences = await loadCompetences()
         setCompetences(loadedCompetences)
       } catch (err) {
-        console.error("Error al cargar competencias:", err)
+        console.error("Error al cargar competencias en useCompetences:", err)
         setError(err instanceof Error ? err : new Error('Error desconocido'))
       } finally {
         setLoading(false)
@@ -32,7 +33,7 @@ export function useCompetences(): UseCompetencesResult {
     }
 
     fetchCompetences()
-  }, [])
+  }, []) // Sin dependencias para evitar re-ejecutar
 
   return { competences, loading, error }
 }

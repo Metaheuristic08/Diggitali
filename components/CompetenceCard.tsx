@@ -65,7 +65,25 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
   const dashOffset = useMemo(() => circumference * (1 - progressPct / 100), [circumference, progressPct])
 
   const showDash = levelStatus.inProgress || levelStatus.completed || locallyStarted
-  const labelText = showDash ? `Nivel ${levelNumber}` : "-"
+  
+  // Lógica corregida para mostrar el nivel correcto según las reglas del bug
+  const labelText = useMemo(() => {
+    // Si no tiene progreso, mostrar guion
+    if (!levelStatus.inProgress && !levelStatus.completed && !locallyStarted) {
+      return "-"
+    }
+    
+    // Si completó este nivel, mostrar el siguiente nivel disponible
+    if (levelStatus.completed) {
+      const nextLevelNumber = levelNumber + 1
+      // Si hay un siguiente nivel disponible, mostrarlo; sino mostrar el nivel actual
+      const displayLevel = nextLevelNumber <= 3 ? nextLevelNumber : levelNumber
+      return `Nivel ${displayLevel}`
+    }
+    
+    // Si está en progreso o se inició localmente, mostrar el nivel actual
+    return `Nivel ${levelNumber}`
+  }, [levelStatus.inProgress, levelStatus.completed, locallyStarted, levelNumber])
 
   const canStartOrContinue = hasEnoughQuestions && !levelStatus.completed
   const btnLabel = levelStatus.inProgress ? "Continuar" : "Comenzar evaluación"

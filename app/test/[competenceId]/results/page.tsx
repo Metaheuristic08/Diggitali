@@ -32,6 +32,7 @@ function TestResultsContent() {
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [loadingQuestions, setLoadingQuestions] = useState(true)
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false) // Prevenir múltiples cargas
 
   // Función para cargar todas las preguntas del área (9 preguntas de 3 niveles)
   const loadAllAreaQuestions = async (competenceId: string) => {
@@ -109,10 +110,13 @@ function TestResultsContent() {
   }
 
   useEffect(() => {
+    // Prevenir múltiples ejecuciones
+    if (hasLoadedOnce || !user?.uid) return
+    
     const run = async () => {
-      if (!user?.uid) return
       setLoadingArea(true)
       setLoadingQuestions(true)
+      setHasLoadedOnce(true) // Marcar como cargado
       
       const competenceId = params.competenceId as string
       console.log('=== INICIO CARGA RESULTADOS ===')
@@ -129,25 +133,29 @@ function TestResultsContent() {
           const testResultDataStr = sessionStorage.getItem('testResultData')
           if (testResultDataStr) {
             const testResultData = JSON.parse(testResultDataStr)
-            console.log('📦 Datos del test cargados desde sessionStorage:', testResultData)
             
-            if (testResultData.questions && testResultData.answers) {
+            // Validar que los datos coincidan con la competencia y nivel actuales
+            const isValidData = testResultData.questions && 
+                               testResultData.answers && 
+                               testResultData.competence === competenceId &&
+                               testResultData.level && 
+                               testResultData.level.toLowerCase() === levelParam.toLowerCase()
+            
+            if (isValidData) {
               setTestQuestions(testResultData.questions)
               setUserAnswers(testResultData.answers)
               questionsLoaded = true
-              console.log('✅ Preguntas y respuestas cargadas exitosamente desde sessionStorage')
-              console.log(`   - Preguntas: ${testResultData.questions.length}`)
-              console.log(`   - Respuestas: ${testResultData.answers.length}`)
+              
+              // Limpiar sessionStorage después de uso exitoso
+              if (!areaCompleted) {
+                sessionStorage.removeItem('testResultData')
+              }
             } else {
-              console.log('⚠️ Datos incompletos en sessionStorage')
-            }
-            
-            // Solo limpiar sessionStorage si no vamos a cargar todas las preguntas del área
-            if (!areaCompleted) {
-              sessionStorage.removeItem('testResultData')
+              // Datos no coinciden con contexto actual - limpiar
+              sessionStorage.removeItem('testResultData') // Limpiar datos inválidos
             }
           } else {
-            console.log('❌ No hay datos en sessionStorage')
+            // No hay datos previos en sessionStorage - normal para carga directa
           }
         } catch (error) {
           console.error('❌ Error cargando datos desde sessionStorage:', error)
@@ -223,7 +231,7 @@ function TestResultsContent() {
       }
     }
     run()
-  }, [areaCompleted, params.competenceId, user?.uid, levelParam])
+  }, [params.competenceId, user?.uid]) // Dependencias reducidas para evitar re-renders
 
   const handleReturnToDashboard = () => {
     router.push("/dashboard")

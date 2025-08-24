@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuración de Firebase (usando el SDK web config)
- }
+
 
 
 // Mapeo de categorías
