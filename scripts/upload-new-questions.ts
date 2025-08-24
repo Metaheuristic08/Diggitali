@@ -4,15 +4,7 @@ import { getFirestore, collection, addDoc, query, where, getDocs } from "firebas
 import * as fs from 'fs'
 import * as path from 'path'
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAahNL2-uxj6wOGieWXdDUvcEx9Gdka-a0",
-  authDomain: "ladico-3eef2.firebaseapp.com",
-  projectId: "ladico-3eef2",
-  storageBucket: "ladico-3eef2.firebasestorage.app",
-  messagingSenderId: "622858666638",
-  appId: "1:622858666638:web:f512807a2b6550f59d3fdf",
-  measurementId: "G-HB4GCM2JX3"
-};
+;
 
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)

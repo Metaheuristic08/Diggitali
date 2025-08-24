@@ -9,9 +9,9 @@ import type { Question, TestSession } from "@/types"
 import TestInterface from "@/components/TestInterface"
 import { useToast } from "@/hooks/use-toast"
 
-
 import { saveUserResult } from "@/utils/results-manager"
 import { loadQuestionsByCompetence, updateQuestionStats, loadCompetences } from "@/services/questionsService"
+import { createOrReuseSession, updateSession } from "@/services/testSessionsService"
 
 export default function TestPage() {
   const params = useParams()
@@ -58,43 +58,30 @@ export default function TestPage() {
       const levelParam = (searchParams.get("level") || "basico").toLowerCase()
       const levelName = levelParam.startsWith("b") ? "Básico" : levelParam.startsWith("i") ? "Intermedio" : "Avanzado"
 
-      
       if (!db) {
         throw new Error("Firebase no está inicializado. Por favor, comprueba tu conexión a Internet.")
       }
       
+      console.log(`🔄 Cargando/creando sesión para competencia: ${competenceId}, nivel: ${levelParam}`)
       
-      console.log(`Cargando preguntas para competencia: ${competenceId}`)
+      const loadedQuestions = await loadQuestionsByCompetence(competenceId, levelName, 3)
       
-  const loadedQuestions = await loadQuestionsByCompetence(competenceId, levelName, 3)
-      
-      
-      
+      if (loadedQuestions.length < 3) {
+        throw new Error(`No hay suficientes preguntas para la competencia ${competenceId}`)
+      }
       
       setQuestions(loadedQuestions)
       
+      // ✅ USAR EL NUEVO SERVICIO EN LUGAR DE CREAR SESIONES DUPLICADAS
+      const session = await createOrReuseSession(
+        user!.uid,
+        competenceId,
+        levelParam,
+        loadedQuestions
+      )
       
-      const session: TestSession = {
-        id: "",
-        userId: user!.uid,
-        competence: competenceId,
-        level: levelParam, // basico|intermedio|avanzado
-        questions: loadedQuestions,
-        answers: new Array(3).fill(null),
-        currentQuestionIndex: 0,
-        startTime: new Date(),
-        score: 0,
-        passed: false,
-      }
-
-      // Crear doc inicial de sesión para reflejar progreso parcial
-      try {
-        const docRef = await addDoc(collection(db, "testSessions"), session)
-        setTestSession({ ...session, id: docRef.id })
-      } catch (e) {
-        console.error("No se pudo crear la sesión inicial:", e)
-        setTestSession(session)
-      }
+      console.log(`✅ Sesión obtenida: ${session.id ? (session.answers?.some(a => a !== null) ? 'existente en progreso' : 'existente inicial') : 'nueva'}`)
+      setTestSession(session)
     } catch (error) {
       console.error("Error loading questions:", error)
       toast({
@@ -134,10 +121,10 @@ export default function TestPage() {
 
     setTestSession(updatedSession)
 
-    // Persistir progreso parcial
+    // ✅ USAR EL NUEVO SERVICIO PARA ACTUALIZAR
     try {
-      if (db && updatedSession.id) {
-        await updateDoc(doc(db, "testSessions", updatedSession.id), {
+      if (updatedSession.id) {
+        await updateSession(updatedSession.id, {
           answers: updatedSession.answers,
           currentQuestionIndex: questionIndex,
         })
@@ -187,17 +174,20 @@ export default function TestPage() {
         passed,
       }
 
-      
+      // ✅ USAR EL NUEVO SERVICIO PARA ACTUALIZAR (NO CREAR NUEVA SESIÓN)
       if (db) {
         try {
           if (finalSession.id) {
-            await updateDoc(doc(db, "testSessions", finalSession.id), {
+            await updateSession(finalSession.id, {
               endTime: completedSession.endTime,
               score: completedSession.score,
               passed: completedSession.passed,
               answers: completedSession.answers,
             })
           } else {
+            // Solo si no hay ID (caso excepcional), usar el servicio para crear
+            console.warn("⚠️ Sesión sin ID, esto no debería pasar con el nuevo servicio")
+            // En caso extremo, crear una nueva sesión completada
             await addDoc(collection(db, "testSessions"), completedSession)
           }
         } catch (error) {
@@ -255,12 +245,9 @@ export default function TestPage() {
         }
       }
 
-      if (!allCompletedAtLevel && nextCompetenceId) {
-        // Pasar directo al siguiente de la misma área y nivel
-        router.push(`/test/${nextCompetenceId}?level=${levelParam}`)
-        return
-      }
-
+      // ✅ CAMBIO: NO navegar automáticamente - mostrar siempre resultados
+      // El usuario decidirá manualmente si continuar con la siguiente competencia
+      
       // Guardar datos del test en sessionStorage para la página de resultados
       const testResultData = {
         questions: finalSession.questions,

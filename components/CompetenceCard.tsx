@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMemo, useState } from "react"
 
+// ✅ NUEVO: Función auxiliar para obtener nombre de dimensión
+const getDimensionName = (dimension: string): string => {
+  const dimensionNames: Record<string, string> = {
+    "Búsqueda y gestión de información": "Búsqueda y Gestión de Información",
+    "Comunicación y colaboración": "Comunicación y Colaboración",
+    "Creación de contenidos digitales": "Creación de Contenidos Digitales",
+    "Seguridad": "Seguridad"
+  }
+  return dimensionNames[dimension] || dimension
+}
+
 interface CompetenceCardProps {
   competence: Competence
   questionCount?: number
@@ -15,9 +26,10 @@ interface CompetenceCardProps {
   levelStatus: { completed: boolean; inProgress: boolean; answered: number; total: number; progressPct: number }
   areaCompletedAtLevel: boolean
   isNextCandidate: boolean
+  isPreviousCompetenceCompleted: (competenceId: string, level: "Básico" | "Intermedio" | "Avanzado") => boolean
 }
 
-export default function CompetenceCard({ competence, questionCount = 0, currentAreaLevel, levelStatus, areaCompletedAtLevel, isNextCandidate }: CompetenceCardProps) {
+export default function CompetenceCard({ competence, questionCount = 0, currentAreaLevel, levelStatus, areaCompletedAtLevel, isNextCandidate, isPreviousCompetenceCompleted }: CompetenceCardProps) {
   const router = useRouter()
   const { userData } = useAuth()
   const [showFullDescription, setShowFullDescription] = useState(false)
@@ -61,8 +73,16 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
   }, [currentAreaLevel])
 
   const circumference = useMemo(() => 2 * Math.PI * 18, [])
-  const progressPct = levelStatus.progressPct
-  const dashOffset = useMemo(() => circumference * (1 - progressPct / 100), [circumference, progressPct])
+  
+  // ✅ MEJORA: Ring con progreso inicial cuando se inicia localmente
+  const effectiveProgressPct = useMemo(() => {
+    if (locallyStarted && !levelStatus.inProgress && !levelStatus.completed) {
+      return 15 // Mostrar progreso inicial del 15% al iniciar
+    }
+    return levelStatus.progressPct
+  }, [levelStatus.progressPct, levelStatus.inProgress, levelStatus.completed, locallyStarted])
+  
+  const dashOffset = useMemo(() => circumference * (1 - effectiveProgressPct / 100), [circumference, effectiveProgressPct])
 
   const showDash = levelStatus.inProgress || levelStatus.completed || locallyStarted
   
@@ -85,16 +105,33 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
     return `Nivel ${levelNumber}`
   }, [levelStatus.inProgress, levelStatus.completed, locallyStarted, levelNumber])
 
-  const canStartOrContinue = hasEnoughQuestions && !levelStatus.completed
+  const canStartOrContinue = hasEnoughQuestions && 
+                          !levelStatus.completed && 
+                          isPreviousCompetenceCompleted(competence.id, currentAreaLevel)
   const btnLabel = levelStatus.inProgress ? "Continuar" : "Comenzar evaluación"
 
   const handleStartOrContinue = () => {
     if (!canStartOrContinue) return
     
-    // Mostrar confirmación con el nivel
+    // ✅ MEJORA: Confirmación con contexto del área y progreso
+    const dimensionName = getDimensionName(competence.dimension)
     const levelText = currentAreaLevel
+    
+    // Obtener información del área (simulado - en producción vendría de props)
+    const competenceNumber = competence.code.split('.')[1]
+    const areaNumber = competence.code.split('.')[0]
+    const totalInArea = areaNumber === "1" ? 3 : areaNumber === "2" ? 6 : 4
+    const currentPosition = parseInt(competenceNumber)
+    
     const confirmed = confirm(
-      `¿Deseas comenzar la evaluación del nivel ${levelText} para la competencia "${competence.name}"?\n\nSe evaluarán 3 preguntas de este nivel.`
+      `🎯 EVALUACIÓN: "${competence.name}"\n\n` +
+      `📍 Área: ${dimensionName}\n` +
+      `📊 Posición: ${currentPosition}/${totalInArea} competencias del área\n` +
+      `🎯 Nivel: ${levelText}\n` +
+      `📝 Preguntas: 3\n` +
+      `⏱️ Tiempo estimado: 5-10 minutos\n\n` +
+      `⚡ Al completar esta competencia podrás continuar con la siguiente.\n\n` +
+      `¿Deseas comenzar la evaluación?`
     )
     
     if (confirmed) {
@@ -160,7 +197,7 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
             className={`w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 border mt-3
             ${canStartOrContinue
                 ? "bg-[#286675] hover:bg-[#1e4a56] text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] border-transparent font-bold"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                : "bg-gray-100 text-gray-400 border-gray-200"
               }`}
             disabled={!canStartOrContinue}
           >

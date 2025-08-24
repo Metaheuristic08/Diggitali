@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 export default function Dashboard() {
   const { user, userData, loading } = useAuth()
   const { progress, loading: loadingProgress } = useCompetenceProgress()
-  const { loading: loadingLevels, perCompetenceLevel, currentAreaLevel, areaStats, nextCompetenceToAttempt } = useLevelProgress()
+  const { loading: loadingLevels, perCompetenceLevel, currentAreaLevel, areaStats, nextCompetenceToAttempt, isPreviousCompetenceCompleted } = useLevelProgress()
   const { counts, loading: loadingCounts } = useQuestionsCount()
   const { competences, loading: loadingCompetences } = useCompetences()
   const router = useRouter()
@@ -170,6 +170,7 @@ export default function Dashboard() {
                           levelStatus={status}
                           areaCompletedAtLevel={isAreaCompleted}
                           isNextCandidate={isNextCandidate}
+                          isPreviousCompetenceCompleted={isPreviousCompetenceCompleted}
                         />
                       )
                     })}

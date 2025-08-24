@@ -39,6 +39,7 @@ export interface UseLevelProgressResult {
   areaStats: AreaStatsByLevel
   currentAreaLevel: (dimension: string) => LevelName
   nextCompetenceToAttempt: (dimension: string, level: LevelName) => string | null
+  isPreviousCompetenceCompleted: (competenceId: string, level: LevelName) => boolean
 }
 
 export function useLevelProgress(): UseLevelProgressResult {
@@ -182,23 +183,39 @@ export function useLevelProgress(): UseLevelProgressResult {
     const areaCompetences = competences.filter(c => c.dimension === dimension)
     if (!areaCompetences.length) return null
     
-    // 1. Primero, buscar competencias incompletas del nivel actual
-    const incompleteSameLevel = areaCompetences.find(c => 
+    // ✅ CAMBIO: Orden estrictamente progresivo
+    const sortedCompetences = areaCompetences.sort((a, b) => a.code.localeCompare(b.code))
+    
+    // Buscar la primera competencia no completada en orden estricto
+    const firstIncomplete = sortedCompetences.find(c => 
       !perCompetenceLevel[c.id]?.[level]?.completed
     )
-    if (incompleteSameLevel) return incompleteSameLevel.id
     
-    // 2. Si todas están completas en el nivel actual, buscar en el siguiente nivel
-    const nextLevelIndex = LEVELS.indexOf(level) + 1
-    if (nextLevelIndex < LEVELS.length) {
-      const nextLevel = LEVELS[nextLevelIndex]
-      const incompleteNextLevel = areaCompetences.find(c => 
-        !perCompetenceLevel[c.id]?.[nextLevel]?.completed
-      )
-      if (incompleteNextLevel) return incompleteNextLevel.id
+    return firstIncomplete?.id || null
+  }
+
+  // ✅ NUEVA: Función para verificar si la competencia anterior está completada
+  const isPreviousCompetenceCompleted = (competenceId: string, level: LevelName): boolean => {
+    const currentCompetence = competences.find(c => c.id === competenceId)
+    if (!currentCompetence) return false
+    
+    const areaCompetences = competences
+      .filter(c => c.dimension === currentCompetence.dimension)
+      .sort((a, b) => a.code.localeCompare(b.code))
+    
+    const currentIndex = areaCompetences.findIndex(c => c.id === competenceId)
+    
+    // Si es la primera competencia del área, está habilitada
+    if (currentIndex === 0) return true
+    
+    // Verificar que todas las competencias anteriores estén completadas
+    for (let i = 0; i < currentIndex; i++) {
+      const prevCompetence = areaCompetences[i]
+      const isCompleted = perCompetenceLevel[prevCompetence.id]?.[level]?.completed
+      if (!isCompleted) return false
     }
     
-    return null
+    return true
   }
 
   return {
@@ -208,7 +225,8 @@ export function useLevelProgress(): UseLevelProgressResult {
     perCompetenceLevel,
     areaStats,
     currentAreaLevel,
-    nextCompetenceToAttempt
+    nextCompetenceToAttempt,
+    isPreviousCompetenceCompleted,
   }
 }
 

@@ -28,6 +28,7 @@ function TestResultsContent() {
   const [firstCompetenceInArea, setFirstCompetenceInArea] = useState<string | null>(null)
   const [loadingArea, setLoadingArea] = useState(false)
   const [areaCounts, setAreaCounts] = useState<{ completed: number; total: number } | null>(null)
+  const [nextCompetenceInfo, setNextCompetenceInfo] = useState<{ id: string; name: string } | null>(null)
   const [testQuestions, setTestQuestions] = useState<Question[]>([])
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -110,13 +111,13 @@ function TestResultsContent() {
   }
 
   useEffect(() => {
-    // Prevenir múltiples ejecuciones
-    if (hasLoadedOnce || !user?.uid) return
+    // Prevenir múltiples ejecuciones con dependencias específicas
+    if (hasLoadedOnce || !user?.uid || !params.competenceId) return
     
     const run = async () => {
       setLoadingArea(true)
       setLoadingQuestions(true)
-      setHasLoadedOnce(true) // Marcar como cargado
+      setHasLoadedOnce(true) // Marcar como cargado ANTES de empezar
       
       const competenceId = params.competenceId as string
       console.log('=== INICIO CARGA RESULTADOS ===')
@@ -172,34 +173,66 @@ function TestResultsContent() {
         if (!questionsLoaded && db) {
           console.log('🔄 Cargando sesión desde Firebase como respaldo...')
           
+          // Buscar todas las sesiones de la competencia/nivel y consolidar
           const sessionQuery = query(
             collection(db, "testSessions"), 
             where("userId", "==", user.uid),
             where("competence", "==", competenceId),
-            where("level", "==", levelParam),
-            orderBy("startTime", "desc"),
-            limit(1)
+            where("level", "==", levelParam)
           )
           
           const sessionSnapshot = await getDocs(sessionQuery)
+          
           if (!sessionSnapshot.empty) {
-            const sessionData = sessionSnapshot.docs[0].data() as TestSession
-            console.log("✅ Sesión encontrada en Firebase:", {
-              id: sessionSnapshot.docs[0].id,
-              questionsCount: sessionData.questions?.length || 0,
-              answersCount: sessionData.answers?.length || 0
-            })
+            // Si hay múltiples sesiones, usar la más relevante (completada > en progreso > inicial)
+            const sessions = sessionSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            } as TestSession & { id: string }))
             
-            if (sessionData.questions && sessionData.questions.length > 0) {
-              setTestQuestions(sessionData.questions)
-              console.log(`✅ ${sessionData.questions.length} preguntas cargadas desde Firebase`)
+            console.log(`📋 Encontradas ${sessions.length} sesiones para ${competenceId}/${levelParam}`)
+            
+            // Priorizar: completadas > en progreso > inicial
+            const completedSessions = sessions.filter((s: any) => s.endTime)
+            const inProgressSessions = sessions.filter((s: any) => !s.endTime && s.answers?.some((a: any) => a !== null))
+            const initialSessions = sessions.filter((s: any) => !s.endTime && !s.answers?.some((a: any) => a !== null))
+            
+            let bestSession: any = null
+            if (completedSessions.length > 0) {
+              bestSession = completedSessions.sort((a: any, b: any) => new Date(b.startTime.toDate()).getTime() - new Date(a.startTime.toDate()).getTime())[0]
+              console.log("✅ Usando sesión completada más reciente")
+            } else if (inProgressSessions.length > 0) {
+              bestSession = inProgressSessions.sort((a: any, b: any) => {
+                const answersA = a.answers?.filter((ans: any) => ans !== null).length || 0
+                const answersB = b.answers?.filter((ans: any) => ans !== null).length || 0
+                return answersB - answersA
+              })[0]
+              console.log("🔄 Usando sesión en progreso con más respuestas")
+            } else if (initialSessions.length > 0) {
+              bestSession = initialSessions[0]
+              console.log("📅 Usando sesión inicial")
             }
             
-            if (sessionData.answers) {
-              setUserAnswers(sessionData.answers)
-              console.log(`✅ ${sessionData.answers.length} respuestas cargadas desde Firebase`)
+            if (bestSession) {
+              console.log("✅ Sesión encontrada en Firebase:", {
+                id: bestSession.id,
+                questionsCount: bestSession.questions?.length || 0,
+                answersCount: bestSession.answers?.length || 0,
+                completed: !!bestSession.endTime,
+                score: bestSession.score || 0
+              })
+              
+              if (bestSession.questions && bestSession.questions.length > 0) {
+                setTestQuestions(bestSession.questions)
+                console.log(`✅ ${bestSession.questions.length} preguntas cargadas desde Firebase`)
+              }
+              
+              if (bestSession.answers) {
+                setUserAnswers(bestSession.answers)
+                console.log(`✅ ${bestSession.answers.length} respuestas cargadas desde Firebase`)
+              }
+              questionsLoaded = true
             }
-            questionsLoaded = true
           } else {
             console.log("❌ No se encontró sesión en Firebase para esta competencia y nivel")
           }
@@ -212,6 +245,18 @@ function TestResultsContent() {
         if (!current) return
         const inArea = comps.filter(c => c.dimension === current.dimension).sort((a, b) => a.code.localeCompare(b.code))
         setFirstCompetenceInArea(inArea[0]?.id || null)
+
+        // ✅ NUEVO: Detectar siguiente competencia en orden progresivo
+        const currentIndex = inArea.findIndex(c => c.id === competenceId)
+        const nextCompetence = inArea[currentIndex + 1]
+        if (nextCompetence) {
+          setNextCompetenceInfo({
+            id: nextCompetence.id,
+            name: nextCompetence.name
+          })
+        } else {
+          setNextCompetenceInfo(null)
+        }
 
         // Contar cuántas competencias del área tienen 100% en este nivel
         const lvl = levelParam
@@ -252,6 +297,23 @@ function TestResultsContent() {
       router.push(`/test/${currentCompetenceId}?level=${nextLevel}`)
     } else {
       router.push("/dashboard")
+    }
+  }
+
+  // ✅ NUEVA: Función para continuar con la siguiente competencia del área
+  const handleContinueToNextCompetence = () => {
+    if (nextCompetenceInfo) {
+      const confirmed = confirm(
+        `🎯 CONTINUAR EVALUACIÓN\n\n` +
+        `📍 Siguiente competencia: "${nextCompetenceInfo.name}"\n` +
+        `🎯 Nivel: ${levelParam.charAt(0).toUpperCase() + levelParam.slice(1)}\n` +
+        `📝 Preguntas: 3\n\n` +
+        `¿Deseas continuar con la evaluación de esta competencia?`
+      )
+      
+      if (confirmed) {
+        router.push(`/test/${nextCompetenceInfo.id}?level=${levelParam}`)
+      }
     }
   }
 
@@ -633,9 +695,25 @@ function TestResultsContent() {
                   Ir al Dashboard
                 </Button> 
               )}
-              <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
-                Continuar evaluación
-              </Button>
+              
+              {/* ✅ NUEVO: Botón para siguiente competencia o siguiente nivel */}
+              {!areaCompleted && nextCompetenceInfo && passed ? (
+                <Button 
+                  onClick={handleContinueToNextCompetence} 
+                  className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold"
+                >
+                  ▶️ Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
+                </Button>
+              ) : !areaCompleted ? (
+                <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
+                  {passed ? "Continuar al siguiente nivel" : "Ir al Dashboard"}
+                </Button>
+              ) : (
+                <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
+                  Continuar al siguiente nivel
+                </Button>
+              )}
+              
               {!passed && !isAlreadyCompleted && (
                 <Button
                   onClick={handleRetakeTest}
