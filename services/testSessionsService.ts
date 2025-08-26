@@ -7,6 +7,16 @@ import type { TestSession, Question } from "@/types"
  * Previene duplicados y maneja la consolidación de sesiones
  */
 
+// ⚠️ LOGS TEMPORALES PARA DIAGNÓSTICO DE DUPLICIDAD
+let firestoreCallCounter = 0
+const pendingRequests = new Map<string, Promise<any>>()
+
+function logFirestoreCall(operation: string, details: string) {
+  firestoreCallCounter++
+  console.log(`[Firestore call #${firestoreCallCounter}] ${operation}: ${details}`)
+  console.trace(`Stack trace for call #${firestoreCallCounter}`)
+}
+
 export interface SessionSearchResult {
   session: TestSession | null
   docId: string | null
@@ -23,51 +33,69 @@ export async function findExistingSession(
   competence: string, 
   level: string
 ): Promise<SessionSearchResult> {
+  const requestKey = `findSession::${userId}::${competence}::${level}`
+  
+  // ⚠️ CACHE DE PROMESAS - Evitar llamadas concurrentes duplicadas
+  if (pendingRequests.has(requestKey)) {
+    logFirestoreCall("CACHE HIT findExistingSession", requestKey)
+    return pendingRequests.get(requestKey)!
+  }
+  
+  logFirestoreCall("findExistingSession", requestKey)
+  
   if (!db) {
     throw new Error("Firebase no está inicializado")
   }
 
-  try {
-    // Buscar todas las sesiones para esta combinación
-    const q = query(
-      collection(db, "testSessions"),
-      where("userId", "==", userId),
-      where("competence", "==", competence),
-      where("level", "==", level),
-      orderBy("startTime", "desc")
-    )
+  const promise = (async () => {
+    try {
+      // Buscar todas las sesiones para esta combinación
+      const q = query(
+        collection(db, "testSessions"),
+        where("userId", "==", userId),
+        where("competence", "==", competence),
+        where("level", "==", level),
+        orderBy("startTime", "desc")
+      )
 
-    const snapshot = await getDocs(q)
-    const sessions = snapshot.docs.map(doc => ({
-      id: doc.id,
-      data: doc.data() as TestSession
-    }))
+      const snapshot = await getDocs(q)
+      const sessions = snapshot.docs.map(doc => ({
+        id: doc.id,
+        data: doc.data() as TestSession
+      }))
 
-    console.log(`🔍 Sesiones encontradas para ${competence}/${level}:`, sessions.length)
+      console.log(`🔍 Sesiones encontradas para ${competence}/${level}:`, sessions.length)
 
-    if (sessions.length === 0) {
-      return {
-        session: null,
-        docId: null,
-        isDuplicate: false,
-        duplicateCount: 0
+      if (sessions.length === 0) {
+        return {
+          session: null,
+          docId: null,
+          isDuplicate: false,
+          duplicateCount: 0
+        }
       }
-    }
 
-    // Consolidar sesiones usando lógica priorizada
-    const bestSession = consolidateSessions(sessions)
-    
-    return {
-      session: { ...bestSession.data, id: bestSession.id },
-      docId: bestSession.id,
-      isDuplicate: sessions.length > 1,
-      duplicateCount: sessions.length
-    }
+      // Consolidar sesiones usando lógica priorizada
+      const bestSession = consolidateSessions(sessions)
+      
+      return {
+        session: { ...bestSession.data, id: bestSession.id },
+        docId: bestSession.id,
+        isDuplicate: sessions.length > 1,
+        duplicateCount: sessions.length
+      }
 
-  } catch (error) {
-    console.error("Error buscando sesiones existentes:", error)
-    throw error
-  }
+    } catch (error) {
+      console.error("Error buscando sesiones existentes:", error)
+      throw error
+    } finally {
+      // Limpiar cache después de un tiempo
+      setTimeout(() => pendingRequests.delete(requestKey), 5000)
+    }
+  })()
+  
+  pendingRequests.set(requestKey, promise)
+  return promise
 }
 
 /**
@@ -80,45 +108,63 @@ export async function createOrReuseSession(
   level: string,
   questions: Question[]
 ): Promise<TestSession> {
+  const requestKey = `createOrReuse::${userId}::${competence}::${level}`
+  
+  // ⚠️ CACHE DE PROMESAS - Evitar llamadas concurrentes duplicadas
+  if (pendingRequests.has(requestKey)) {
+    logFirestoreCall("CACHE HIT createOrReuseSession", requestKey)
+    return pendingRequests.get(requestKey)!
+  }
+  
+  logFirestoreCall("createOrReuseSession", requestKey)
+  
   if (!db) {
     throw new Error("Firebase no está inicializado")
   }
 
-  try {
-    // Buscar sesiones existentes
-    const searchResult = await findExistingSession(userId, competence, level)
+  const promise = (async () => {
+    try {
+      // Buscar sesiones existentes
+      const searchResult = await findExistingSession(userId, competence, level)
 
-    if (searchResult.session && searchResult.docId) {
-      // Si encontramos una sesión existente
-      if (searchResult.isDuplicate) {
-        console.warn(`⚠️ Encontradas ${searchResult.duplicateCount} sesiones duplicadas para ${competence}/${level}`)
+      if (searchResult.session && searchResult.docId) {
+        // Si encontramos una sesión existente
+        if (searchResult.isDuplicate) {
+          console.warn(`⚠️ Encontradas ${searchResult.duplicateCount} sesiones duplicadas para ${competence}/${level}`)
+        }
+
+        const existingSession = searchResult.session
+        
+        // Si la sesión ya está completada, crear una nueva (para reintentos)
+        if (existingSession.endTime) {
+          console.log("📝 Sesión anterior completada, creando nueva sesión...")
+          return await createNewSession(userId, competence, level, questions)
+        }
+
+        // Si la sesión está en progreso, reutilizarla
+        console.log("♻️ Reutilizando sesión existente en progreso")
+        return {
+          ...existingSession,
+          questions: questions, // Actualizar preguntas por si han cambiado
+          id: searchResult.docId
+        }
       }
 
-      const existingSession = searchResult.session
-      
-      // Si la sesión ya está completada, crear una nueva (para reintentos)
-      if (existingSession.endTime) {
-        console.log("📝 Sesión anterior completada, creando nueva sesión...")
-        return await createNewSession(userId, competence, level, questions)
-      }
+      // No hay sesiones existentes, crear una nueva
+      console.log("🆕 Creando nueva sesión")
+      return await createNewSession(userId, competence, level, questions)
 
-      // Si la sesión está en progreso, reutilizarla
-      console.log("♻️ Reutilizando sesión existente en progreso")
-      return {
-        ...existingSession,
-        questions: questions, // Actualizar preguntas por si han cambiado
-        id: searchResult.docId
-      }
+    } catch (error) {
+      console.error("Error creando/reutilizando sesión:", error)
+      throw error
+    } finally {
+      // Limpiar cache después de un tiempo
+      setTimeout(() => pendingRequests.delete(requestKey), 5000)
     }
-
-    // No hay sesiones existentes, crear una nueva
-    console.log("🆕 Creando nueva sesión")
-    return await createNewSession(userId, competence, level, questions)
-
-  } catch (error) {
-    console.error("Error creando/reutilizando sesión:", error)
-    throw error
-  }
+  })()
+  
+  pendingRequests.set(requestKey, promise)
+  return promise
 }
 
 /**
@@ -130,6 +176,8 @@ async function createNewSession(
   level: string,
   questions: Question[]
 ): Promise<TestSession> {
+  logFirestoreCall("createNewSession (addDoc)", `${userId}::${competence}::${level}`)
+  
   if (!db) {
     throw new Error("Firebase no está inicializado")
   }

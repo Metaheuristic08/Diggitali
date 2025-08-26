@@ -170,6 +170,11 @@ function getCompetenceColor(code: string): string {
  * Carga preguntas de una competencia específica desde Firestore
  */
 export async function loadQuestionsByCompetence(competenceId: string, level: string = "Básico", count: number = 3): Promise<Question[]> {
+  // ⚠️ LOGS TEMPORALES PARA DIAGNÓSTICO
+  const callId = Date.now() + Math.random()
+  console.log(`[Questions call #${callId}] loadQuestionsByCompetence: ${competenceId}::${level}::${count}`)
+  console.trace(`Stack trace for questions call #${callId}`)
+  
   if (!db) {
     console.error("Firestore no está inicializado")
     return []

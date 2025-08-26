@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { collection, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import type { Question } from "@/types"
@@ -16,7 +16,17 @@ export default function QuestionsAdminPage() {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
   const router = useRouter()
 
+  // ⚠️ GUARD PARA PREVENIR EJECUCIONES MÚLTIPLES
+  const loadQuestionsRan = useRef(false)
+
   useEffect(() => {
+    // ⚠️ GUARD: Prevenir ejecuciones múltiples
+    if (loadQuestionsRan.current) {
+      console.log("⚠️ Admin questions useEffect ya ejecutado previamente, saltando...")
+      return
+    }
+    
+    loadQuestionsRan.current = true
     loadQuestions()
   }, [])
 

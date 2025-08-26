@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { collection, addDoc, updateDoc, doc, getDocs, query, where } from "firebase/firestore"
@@ -24,10 +24,19 @@ export default function TestPage() {
   const [testSession, setTestSession] = useState<TestSession | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // ⚠️ GUARD PARA PREVENIR EJECUCIONES MÚLTIPLES
+  const loadQuestionsRan = useRef(false)
+
   
   
 
   useEffect(() => {
+    // ⚠️ GUARD: Prevenir ejecuciones múltiples
+    if (loadQuestionsRan.current) {
+      console.log("⚠️ useEffect ya ejecutado previamente, saltando...")
+      return
+    }
+    
     if (!user || !userData) {
       router.push("/")
       return
@@ -49,6 +58,8 @@ export default function TestPage() {
       return
     }
 
+    // Marcar como ejecutado ANTES de la llamada async
+    loadQuestionsRan.current = true
     loadQuestions()
   }, [user, userData, params.competenceId, router])
 
