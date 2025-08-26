@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import Header from "@/components/landing/Header"
 import Hero from "@/components/landing/Hero"
 import Features from "@/components/landing/Features"
@@ -9,10 +9,15 @@ import Areas from "@/components/landing/Areas"
 import { getFirebaseAnalytics } from "@/lib/firebase"
 
 export default function LandicoLanding() {
+  const analyticsInitialized = useRef(false)
+
   useEffect(() => {
-    const analytics = getFirebaseAnalytics()
-    if (analytics) {
-      console.log("Firebase Analytics initialized successfully")
+    if (!analyticsInitialized.current) {
+      const analytics = getFirebaseAnalytics()
+      if (analytics) {
+        console.log("Firebase Analytics initialized successfully")
+        analyticsInitialized.current = true
+      }
     }
   }, [])
 

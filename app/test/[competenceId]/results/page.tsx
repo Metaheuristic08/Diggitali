@@ -41,31 +41,31 @@ function TestResultsContent() {
       console.log('Usuario o DB no disponible para cargar preguntas del área')
       return
     }
-    
+
     try {
       console.log('=== CARGANDO TODAS LAS PREGUNTAS DEL ÁREA ===')
       console.log('Competencia:', competenceId)
       console.log('Usuario:', user.uid)
-      
+
       const levels = ['basico', 'intermedio', 'avanzado']
       let allQuestions: Question[] = []
       let allAnswers: (number | null)[] = []
-      
+
       for (const level of levels) {
         console.log(`\n--- Cargando sesión de nivel ${level} ---`)
-        
+
         const sessionQuery = query(
-          collection(db, "testSessions"), 
+          collection(db, "testSessions"),
           where("userId", "==", user.uid),
           where("competence", "==", competenceId),
           where("level", "==", level),
           orderBy("startTime", "desc"),
           limit(1)
         )
-        
+
         const sessionSnapshot = await getDocs(sessionQuery)
         console.log(`Documentos encontrados para ${level}:`, sessionSnapshot.size)
-        
+
         if (!sessionSnapshot.empty) {
           const sessionData = sessionSnapshot.docs[0].data() as TestSession
           console.log(`Sesión ${level} encontrada:`, {
@@ -75,14 +75,14 @@ function TestResultsContent() {
             score: sessionData.score,
             startTime: sessionData.startTime
           })
-          
+
           if (sessionData.questions && sessionData.questions.length > 0) {
             allQuestions.push(...sessionData.questions)
             console.log(`✅ ${sessionData.questions.length} preguntas agregadas desde nivel ${level}`)
           } else {
             console.log(`⚠️ No se encontraron preguntas en la sesión de ${level}`)
           }
-          
+
           if (sessionData.answers) {
             allAnswers.push(...sessionData.answers)
             console.log(`✅ ${sessionData.answers.length} respuestas agregadas desde nivel ${level}`)
@@ -93,11 +93,11 @@ function TestResultsContent() {
           console.log(`❌ No se encontró sesión para nivel ${level}`)
         }
       }
-      
+
       console.log('\n=== RESUMEN FINAL ===')
       console.log(`Total de preguntas cargadas: ${allQuestions.length}`)
       console.log(`Total de respuestas cargadas: ${allAnswers.length}`)
-      
+
       if (allQuestions.length > 0) {
         setTestQuestions(allQuestions)
         setUserAnswers(allAnswers)
@@ -113,40 +113,40 @@ function TestResultsContent() {
   useEffect(() => {
     // Prevenir múltiples ejecuciones con dependencias específicas
     if (hasLoadedOnce || !user?.uid || !params.competenceId) return
-    
+
     const run = async () => {
       setLoadingArea(true)
       setLoadingQuestions(true)
       setHasLoadedOnce(true) // Marcar como cargado ANTES de empezar
-      
+
       const competenceId = params.competenceId as string
       console.log('=== INICIO CARGA RESULTADOS ===')
       console.log('Competencia:', competenceId)
       console.log('Nivel:', levelParam)
       console.log('Área completada:', areaCompleted)
       console.log('Ya completado:', isAlreadyCompleted)
-      
+
       try {
         // Primero intentar cargar los datos desde sessionStorage
         let questionsLoaded = false
-        
+
         try {
           const testResultDataStr = sessionStorage.getItem('testResultData')
           if (testResultDataStr) {
             const testResultData = JSON.parse(testResultDataStr)
-            
+
             // Validar que los datos coincidan con la competencia y nivel actuales
-            const isValidData = testResultData.questions && 
-                               testResultData.answers && 
-                               testResultData.competence === competenceId &&
-                               testResultData.level && 
-                               testResultData.level.toLowerCase() === levelParam.toLowerCase()
-            
+            const isValidData = testResultData.questions &&
+              testResultData.answers &&
+              testResultData.competence === competenceId &&
+              testResultData.level &&
+              testResultData.level.toLowerCase() === levelParam.toLowerCase()
+
             if (isValidData) {
               setTestQuestions(testResultData.questions)
               setUserAnswers(testResultData.answers)
               questionsLoaded = true
-              
+
               // Limpiar sessionStorage después de uso exitoso
               if (!areaCompleted) {
                 sessionStorage.removeItem('testResultData')
@@ -161,42 +161,42 @@ function TestResultsContent() {
         } catch (error) {
           console.error('❌ Error cargando datos desde sessionStorage:', error)
         }
-        
+
         // Si areaCompleted es true, cargar TODAS las preguntas del área
         if (areaCompleted && !questionsLoaded) {
           console.log('🏆 Área completa detectada, cargando todas las preguntas desde Firebase...')
           await loadAllAreaQuestions(competenceId)
           questionsLoaded = true
         }
-        
+
         // Si no se cargaron las preguntas aún, cargar desde Firebase como respaldo
         if (!questionsLoaded && db) {
           console.log('🔄 Cargando sesión desde Firebase como respaldo...')
-          
+
           // Buscar todas las sesiones de la competencia/nivel y consolidar
           const sessionQuery = query(
-            collection(db, "testSessions"), 
+            collection(db, "testSessions"),
             where("userId", "==", user.uid),
             where("competence", "==", competenceId),
             where("level", "==", levelParam)
           )
-          
+
           const sessionSnapshot = await getDocs(sessionQuery)
-          
+
           if (!sessionSnapshot.empty) {
             // Si hay múltiples sesiones, usar la más relevante (completada > en progreso > inicial)
             const sessions = sessionSnapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data()
             } as TestSession & { id: string }))
-            
+
             console.log(`📋 Encontradas ${sessions.length} sesiones para ${competenceId}/${levelParam}`)
-            
+
             // Priorizar: completadas > en progreso > inicial
             const completedSessions = sessions.filter((s: any) => s.endTime)
             const inProgressSessions = sessions.filter((s: any) => !s.endTime && s.answers?.some((a: any) => a !== null))
             const initialSessions = sessions.filter((s: any) => !s.endTime && !s.answers?.some((a: any) => a !== null))
-            
+
             let bestSession: any = null
             if (completedSessions.length > 0) {
               bestSession = completedSessions.sort((a: any, b: any) => new Date(b.startTime.toDate()).getTime() - new Date(a.startTime.toDate()).getTime())[0]
@@ -212,7 +212,7 @@ function TestResultsContent() {
               bestSession = initialSessions[0]
               console.log("📅 Usando sesión inicial")
             }
-            
+
             if (bestSession) {
               console.log("✅ Sesión encontrada en Firebase:", {
                 id: bestSession.id,
@@ -221,12 +221,12 @@ function TestResultsContent() {
                 completed: !!bestSession.endTime,
                 score: bestSession.score || 0
               })
-              
+
               if (bestSession.questions && bestSession.questions.length > 0) {
                 setTestQuestions(bestSession.questions)
                 console.log(`✅ ${bestSession.questions.length} preguntas cargadas desde Firebase`)
               }
-              
+
               if (bestSession.answers) {
                 setUserAnswers(bestSession.answers)
                 console.log(`✅ ${bestSession.answers.length} respuestas cargadas desde Firebase`)
@@ -239,7 +239,7 @@ function TestResultsContent() {
         }
 
         if (!areaCompleted) return
-        
+
         const comps = await loadCompetences()
         const current = comps.find(c => c.id === competenceId)
         if (!current) return
@@ -310,7 +310,7 @@ function TestResultsContent() {
         `📝 Preguntas: 3\n\n` +
         `¿Deseas continuar con la evaluación de esta competencia?`
       )
-      
+
       if (confirmed) {
         router.push(`/test/${nextCompetenceInfo.id}?level=${levelParam}`)
       }
@@ -361,12 +361,12 @@ function TestResultsContent() {
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl sm:rounded-2xl shadow-sm border border-green-200">
-                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_,i) => userAnswers[i] === testQuestions[i]?.correctAnswerIndex).length : passed ? 1 : 0}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_, i) => userAnswers[i] === testQuestions[i]?.correctAnswerIndex).length : passed ? 1 : 0}</div>
                 <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Correctas" : "Correcta"}</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl sm:rounded-2xl shadow-sm border border-red-200">
-                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_,i) => userAnswers[i] !== testQuestions[i]?.correctAnswerIndex).length : passed ? 0 : 1}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_, i) => userAnswers[i] !== testQuestions[i]?.correctAnswerIndex).length : passed ? 0 : 1}</div>
                 <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Incorrectas" : "Incorrecta"}</div>
               </div>
             </div>
@@ -396,7 +396,7 @@ function TestResultsContent() {
                   </p>
                 </div>
               )}
-              
+
               <h3 className="font-bold text-gray-900 text-base sm:text-lg">
                 Detalle de preguntas evaluadas:
                 {testQuestions.length > 3 && (
@@ -405,7 +405,7 @@ function TestResultsContent() {
                   </span>
                 )}
               </h3>
-              
+
               {loadingQuestions ? (
                 <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#286675] mx-auto mb-4"></div>
@@ -418,16 +418,15 @@ function TestResultsContent() {
                     <button
                       onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                       disabled={currentQuestionIndex === 0}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        currentQuestionIndex === 0 
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${currentQuestionIndex === 0
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
-                      }`}
+                        }`}
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Anterior
                     </button>
-                    
+
                     <div className="text-center">
                       <span className="text-sm text-gray-600 font-medium mb-2 block">
                         Pregunta {currentQuestionIndex + 1} de {testQuestions.length}
@@ -442,20 +441,20 @@ function TestResultsContent() {
                             else if (index < 6) indicatorColor = 'bg-blue-300 hover:bg-blue-400' // Intermedio  
                             else indicatorColor = 'bg-purple-300 hover:bg-purple-400' // Avanzado
                           }
-                          
+
                           if (index === currentQuestionIndex) {
                             indicatorColor = 'bg-[#286675] scale-125 shadow-md'
                           }
-                          
+
                           return (
                             <button
                               key={index}
                               onClick={() => setCurrentQuestionIndex(index)}
                               className={`w-3 h-3 rounded-full transition-all duration-200 ${indicatorColor}`}
-                              aria-label={`Ir a pregunta ${index + 1}${testQuestions.length > 3 ? 
+                              aria-label={`Ir a pregunta ${index + 1}${testQuestions.length > 3 ?
                                 ` (${index < 3 ? 'Básico' : index < 6 ? 'Intermedio' : 'Avanzado'})` : ''}`}
-                              title={testQuestions.length > 3 ? 
-                                `Pregunta ${index + 1} - Nivel ${index < 3 ? 'Básico' : index < 6 ? 'Intermedio' : 'Avanzado'}` : 
+                              title={testQuestions.length > 3 ?
+                                `Pregunta ${index + 1} - Nivel ${index < 3 ? 'Básico' : index < 6 ? 'Intermedio' : 'Avanzado'}` :
                                 `Pregunta ${index + 1}`}
                             />
                           )
@@ -479,15 +478,14 @@ function TestResultsContent() {
                         </div>
                       )}
                     </div>
-                    
+
                     <button
                       onClick={() => setCurrentQuestionIndex(Math.min(testQuestions.length - 1, currentQuestionIndex + 1))}
                       disabled={currentQuestionIndex === testQuestions.length - 1}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        currentQuestionIndex === testQuestions.length - 1 
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${currentQuestionIndex === testQuestions.length - 1
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
-                      }`}
+                        }`}
                     >
                       Siguiente
                       <ChevronRight className="w-4 h-4" />
@@ -508,36 +506,35 @@ function TestResultsContent() {
                           {/* Mostrar nivel si hay más de 3 preguntas (área completa) */}
                           {testQuestions.length > 3 && (
                             <div className="mt-1">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                currentQuestionIndex < 3 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : currentQuestionIndex < 6 
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${currentQuestionIndex < 3
+                                  ? 'bg-green-100 text-green-800'
+                                  : currentQuestionIndex < 6
                                     ? 'bg-blue-100 text-blue-800'
                                     : 'bg-purple-100 text-purple-800'
-                              }`}>
+                                }`}>
                                 Nivel {currentQuestionIndex < 3 ? 'Básico' : currentQuestionIndex < 6 ? 'Intermedio' : 'Avanzado'}
                               </span>
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="text-sm text-gray-700 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                         {testQuestions[currentQuestionIndex]?.scenario}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       {testQuestions[currentQuestionIndex]?.options.map((option, index) => {
                         const userAnswer = userAnswers[currentQuestionIndex]
                         const correctAnswer = testQuestions[currentQuestionIndex]?.correctAnswerIndex
                         const isUserAnswer = userAnswer === index
                         const isCorrectAnswer = correctAnswer === index
-                        
+
                         let className = "p-4 rounded-lg border text-sm transition-all duration-200 "
                         let iconElement = null
                         let letterLabel = String.fromCharCode(65 + index) // A, B, C, D
-                        
+
                         if (isUserAnswer && isCorrectAnswer) {
                           className += "bg-green-50 border-green-300 text-green-800 shadow-md ring-2 ring-green-200"
                           iconElement = <CheckCircle className="w-5 h-5 text-green-600" />
@@ -550,15 +547,14 @@ function TestResultsContent() {
                         } else {
                           className += "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                         }
-                        
+
                         return (
                           <div key={index} className={className}>
                             <div className="flex items-center gap-3">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                                isCorrectAnswer || isUserAnswer 
-                                  ? 'bg-white text-gray-700 border-2 border-current' 
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${isCorrectAnswer || isUserAnswer
+                                  ? 'bg-white text-gray-700 border-2 border-current'
                                   : 'bg-gray-100 text-gray-500 border border-gray-300'
-                              }`}>
+                                }`}>
                                 {letterLabel}
                               </div>
                               <span className="flex-1">{option}</span>
@@ -588,29 +584,27 @@ function TestResultsContent() {
                         <div className="space-y-2">
                           <p className="text-blue-700">
                             <span className="font-medium">Tu respuesta:</span>{' '}
-                            <span className={`font-semibold ${
-                              userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex 
-                                ? 'text-green-700' 
+                            <span className={`font-semibold ${userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex
+                                ? 'text-green-700'
                                 : 'text-red-700'
-                            }`}>
+                              }`}>
                               {userAnswers[currentQuestionIndex] !== null && userAnswers[currentQuestionIndex] !== undefined
-                                ? `${String.fromCharCode(65 + userAnswers[currentQuestionIndex]!)}. ${testQuestions[currentQuestionIndex]?.options[userAnswers[currentQuestionIndex]!]}` 
+                                ? `${String.fromCharCode(65 + userAnswers[currentQuestionIndex]!)}. ${testQuestions[currentQuestionIndex]?.options[userAnswers[currentQuestionIndex]!]}`
                                 : 'No respondida'}
                             </span>
                           </p>
                           <p className="text-blue-700">
                             <span className="font-medium">Respuesta correcta:</span>{' '}
                             <span className="font-semibold text-green-700">
-                              {testQuestions[currentQuestionIndex]?.correctAnswerIndex !== undefined 
+                              {testQuestions[currentQuestionIndex]?.correctAnswerIndex !== undefined
                                 ? `${String.fromCharCode(65 + testQuestions[currentQuestionIndex]?.correctAnswerIndex!)}. ${testQuestions[currentQuestionIndex]?.options[testQuestions[currentQuestionIndex]?.correctAnswerIndex!]}`
                                 : 'No disponible'}
                             </span>
                           </p>
-                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-                            userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex 
-                              ? 'bg-green-100 text-green-800' 
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                          }`}>
+                            }`}>
                             {userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex ? (
                               <>
                                 <CheckCircle className="w-3 h-3" />
@@ -634,20 +628,19 @@ function TestResultsContent() {
                       const userAnswer = userAnswers[index]
                       const correctAnswer = testQuestions[index]?.correctAnswerIndex
                       const isCorrect = userAnswer === correctAnswer
-                      
+
                       return (
                         <button
                           key={index}
                           onClick={() => setCurrentQuestionIndex(index)}
-                          className={`w-4 h-4 rounded-full transition-all ${
-                            index === currentQuestionIndex 
-                              ? isCorrect 
-                                ? "bg-green-500 ring-2 ring-green-300" 
+                          className={`w-4 h-4 rounded-full transition-all ${index === currentQuestionIndex
+                              ? isCorrect
+                                ? "bg-green-500 ring-2 ring-green-300"
                                 : "bg-red-500 ring-2 ring-red-300"
                               : isCorrect
                                 ? "bg-green-300 hover:bg-green-400"
                                 : "bg-red-300 hover:bg-red-400"
-                          }`}
+                            }`}
                           title={`Pregunta ${index + 1} - ${isCorrect ? 'Correcta' : 'Incorrecta'}`}
                         />
                       )
@@ -693,13 +686,13 @@ function TestResultsContent() {
               {areaCompleted && (
                 <Button onClick={handleReturnToDashboard} variant="outline" className="flex-1 rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-medium">
                   Ir al Dashboard
-                </Button> 
+                </Button>
               )}
-              
+
               {/* ✅ NUEVO: Botón para siguiente competencia o siguiente nivel */}
               {!areaCompleted && nextCompetenceInfo && passed ? (
-                <Button 
-                  onClick={handleContinueToNextCompetence} 
+                <Button
+                  onClick={handleContinueToNextCompetence}
                   className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold"
                 >
                   ▶️ Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
@@ -713,7 +706,7 @@ function TestResultsContent() {
                   Continuar al siguiente nivel
                 </Button>
               )}
-              
+
               {!passed && !isAlreadyCompleted && (
                 <Button
                   onClick={handleRetakeTest}
