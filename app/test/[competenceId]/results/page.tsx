@@ -94,10 +94,6 @@ function TestResultsContent() {
         }
       }
 
-      console.log('\n=== RESUMEN FINAL ===')
-      console.log(`Total de preguntas cargadas: ${allQuestions.length}`)
-      console.log(`Total de respuestas cargadas: ${allAnswers.length}`)
-
       if (allQuestions.length > 0) {
         setTestQuestions(allQuestions)
         setUserAnswers(allAnswers)
@@ -118,14 +114,6 @@ function TestResultsContent() {
       setLoadingArea(true)
       setLoadingQuestions(true)
       setHasLoadedOnce(true) // Marcar como cargado ANTES de empezar
-
-      const competenceId = params.competenceId as string
-      console.log('=== INICIO CARGA RESULTADOS ===')
-      console.log('Competencia:', competenceId)
-      console.log('Nivel:', levelParam)
-      console.log('Área completada:', areaCompleted)
-      console.log('Ya completado:', isAlreadyCompleted)
-
       try {
         // Primero intentar cargar los datos desde sessionStorage
         let questionsLoaded = false
@@ -192,12 +180,12 @@ function TestResultsContent() {
             } as TestSession & { id: string }))
 
             console.log(`📋 Encontradas ${sessions.length} sesiones para ${competenceId}/${levelParam}`)
-            console.log('📋 Sesiones encontradas:', sessions.map(s => ({ 
-              id: s.id, 
-              competence: s.competence, 
-              level: s.level, 
-              endTime: s.endTime, 
-              score: s.score 
+            console.log('📋 Sesiones encontradas:', sessions.map(s => ({
+              id: s.id,
+              competence: s.competence,
+              level: s.level,
+              endTime: s.endTime,
+              score: s.score
             })))
 
             // Priorizar: completadas > en progreso > inicial
@@ -244,7 +232,7 @@ function TestResultsContent() {
           } else {
             console.log("❌ No se encontró sesión en Firebase para esta competencia y nivel")
             console.log(`🔍 Búsqueda realizada: userId=${user.uid}, competence=${competenceId}, level=${levelParam}`)
-            
+
             // ✅ DEBUGGING: Intentar buscar TODAS las sesiones del usuario para ver qué hay
             const allSessionsQuery = query(
               collection(db, "testSessions"),
@@ -395,18 +383,18 @@ function TestResultsContent() {
           <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
               <div className="p-3 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200">
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{areaCompleted ? 3 : 1}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Competencias" : "Competencia"}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{totalQuestions}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Preguntas</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl sm:rounded-2xl shadow-sm border border-green-200">
-                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_, i) => userAnswers[i] === testQuestions[i]?.correctAnswerIndex).length : passed ? 1 : 0}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Correctas" : "Correcta"}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">{correctAnswers}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Correctas</div>
               </div>
 
               <div className="p-3 sm:p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl sm:rounded-2xl shadow-sm border border-red-200">
-                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{areaCompleted ? testQuestions.filter((_, i) => userAnswers[i] !== testQuestions[i]?.correctAnswerIndex).length : passed ? 0 : 1}</div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium">{areaCompleted ? "Incorrectas" : "Incorrecta"}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">{totalQuestions - correctAnswers}</div>
+                <div className="text-xs sm:text-sm text-gray-600 font-medium">Incorrectas</div>
               </div>
             </div>
 
@@ -458,8 +446,8 @@ function TestResultsContent() {
                       onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                       disabled={currentQuestionIndex === 0}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${currentQuestionIndex === 0
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
                         }`}
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -522,8 +510,8 @@ function TestResultsContent() {
                       onClick={() => setCurrentQuestionIndex(Math.min(testQuestions.length - 1, currentQuestionIndex + 1))}
                       disabled={currentQuestionIndex === testQuestions.length - 1}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${currentQuestionIndex === testQuestions.length - 1
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-[#286675] text-white hover:bg-[#1e4a56] hover:shadow-md transform hover:scale-105'
                         }`}
                     >
                       Siguiente
@@ -546,10 +534,10 @@ function TestResultsContent() {
                           {testQuestions.length > 3 && (
                             <div className="mt-1">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${currentQuestionIndex < 3
-                                  ? 'bg-green-100 text-green-800'
-                                  : currentQuestionIndex < 6
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-purple-100 text-purple-800'
+                                ? 'bg-green-100 text-green-800'
+                                : currentQuestionIndex < 6
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
                                 }`}>
                                 Nivel {currentQuestionIndex < 3 ? 'Básico' : currentQuestionIndex < 6 ? 'Intermedio' : 'Avanzado'}
                               </span>
@@ -591,8 +579,8 @@ function TestResultsContent() {
                           <div key={index} className={className}>
                             <div className="flex items-center gap-3">
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${isCorrectAnswer || isUserAnswer
-                                  ? 'bg-white text-gray-700 border-2 border-current'
-                                  : 'bg-gray-100 text-gray-500 border border-gray-300'
+                                ? 'bg-white text-gray-700 border-2 border-current'
+                                : 'bg-gray-100 text-gray-500 border border-gray-300'
                                 }`}>
                                 {letterLabel}
                               </div>
@@ -624,8 +612,8 @@ function TestResultsContent() {
                           <p className="text-blue-700">
                             <span className="font-medium">Tu respuesta:</span>{' '}
                             <span className={`font-semibold ${userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex
-                                ? 'text-green-700'
-                                : 'text-red-700'
+                              ? 'text-green-700'
+                              : 'text-red-700'
                               }`}>
                               {userAnswers[currentQuestionIndex] !== null && userAnswers[currentQuestionIndex] !== undefined
                                 ? `${String.fromCharCode(65 + userAnswers[currentQuestionIndex]!)}. ${testQuestions[currentQuestionIndex]?.options[userAnswers[currentQuestionIndex]!]}`
@@ -641,8 +629,8 @@ function TestResultsContent() {
                             </span>
                           </p>
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                             }`}>
                             {userAnswers[currentQuestionIndex] === testQuestions[currentQuestionIndex]?.correctAnswerIndex ? (
                               <>
@@ -673,12 +661,12 @@ function TestResultsContent() {
                           key={index}
                           onClick={() => setCurrentQuestionIndex(index)}
                           className={`w-4 h-4 rounded-full transition-all ${index === currentQuestionIndex
-                              ? isCorrect
-                                ? "bg-green-500 ring-2 ring-green-300"
-                                : "bg-red-500 ring-2 ring-red-300"
-                              : isCorrect
-                                ? "bg-green-300 hover:bg-green-400"
-                                : "bg-red-300 hover:bg-red-400"
+                            ? isCorrect
+                              ? "bg-green-500 ring-2 ring-green-300"
+                              : "bg-red-500 ring-2 ring-red-300"
+                            : isCorrect
+                              ? "bg-green-300 hover:bg-green-400"
+                              : "bg-red-300 hover:bg-red-400"
                             }`}
                           title={`Pregunta ${index + 1} - ${isCorrect ? 'Correcta' : 'Incorrecta'}`}
                         />
@@ -728,19 +716,27 @@ function TestResultsContent() {
                 </Button>
               )}
 
-              {/* ✅ NUEVO: Botón para siguiente competencia o siguiente nivel */}
+              {/* ✅ LÓGICA CORREGIDA: Botón para siguiente competencia, siguiente nivel o dashboard */}
               {!areaCompleted && nextCompetenceInfo && passed ? (
+                // Hay siguiente competencia en el área
                 <Button
                   onClick={handleContinueToNextCompetence}
                   className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold"
                 >
                   ▶️ Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
                 </Button>
-              ) : !areaCompleted ? (
-                <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
-                  {passed ? "Continuar al siguiente nivel" : "Ir al Dashboard"}
+              ) : !areaCompleted && !nextCompetenceInfo && passed ? (
+                // No hay más competencias en el área, ir al dashboard
+                <Button onClick={handleReturnToDashboard} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
+                  Ir al Dashboard
+                </Button>
+              ) : !areaCompleted && !passed ? (
+                // No pasó el test
+                <Button onClick={handleReturnToDashboard} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
+                  Ir al Dashboard
                 </Button>
               ) : (
+                // Área completada - continuar al siguiente nivel
                 <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
                   Continuar al siguiente nivel
                 </Button>

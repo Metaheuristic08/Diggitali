@@ -107,7 +107,7 @@ export function useLevelProgress(): UseLevelProgressResult {
       setPerCompetenceLevel(map)
       setLoading(false)
       
-      // Log consolidado de datos rescatados
+      // ✅ DEBUGGING MEJORADO: Log detallado de cada competencia
       const totalSessions = snapshot.size
       const completedLevels = Object.values(map).reduce((acc, comp) => {
         return acc + Object.values(comp).filter(level => level.completed).length
@@ -116,7 +116,6 @@ export function useLevelProgress(): UseLevelProgressResult {
         return acc + Object.values(comp).filter(level => level.inProgress).length
       }, 0)
       
-      // Mostrar detalles de las sesiones para debug
       console.log(`📊 DATOS FIREBASE: ${totalSessions} sesiones → ${completedLevels} completados, ${inProgressLevels} en progreso`)
       
       if (totalSessions > 0) {
@@ -125,6 +124,16 @@ export function useLevelProgress(): UseLevelProgressResult {
           return `${data.competence || 'N/A'}/${data.level || 'N/A'} (${data.endTime ? 'terminada' : 'en curso'})`
         })
         console.log(`📋 Sesiones encontradas:`, sessionDetails)
+        
+        // ✅ NUEVO: Log del estado consolidado de cada competencia
+        console.log(`📊 ESTADO CONSOLIDADO POR COMPETENCIA:`)
+        Object.entries(map).forEach(([competenceId, levels]) => {
+          Object.entries(levels).forEach(([level, status]) => {
+            if (status.completed || status.inProgress || status.answered > 0) {
+              console.log(`  ${competenceId}/${level}: ${status.completed ? '✅ COMPLETADO' : status.inProgress ? '🔄 EN PROGRESO' : '⚪ INICIAL'} (${status.answered}/${status.total}, ${status.progressPct}%)`)
+            }
+          })
+        })
       }
     }, (error) => {
       console.error("Error en listener de testSessions:", error)

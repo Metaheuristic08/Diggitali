@@ -114,13 +114,6 @@ export default function TestPage() {
     const currentQuestion = testSession.questions[questionIndex]
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
     
-    console.log("=== RESPUESTA DEL USUARIO ===")
-    console.log(`Competencia: ${testSession.competence}`)
-    console.log(`Pregunta ${questionIndex + 1}: ${currentQuestion.title}`)
-    console.log(`Respuesta del usuario: Opción ${answerIndex + 1} (índice ${answerIndex}) - "${currentQuestion.options[answerIndex]}"`)
-    console.log(`Respuesta correcta: Opción ${currentQuestion.correctAnswerIndex + 1} (índice ${currentQuestion.correctAnswerIndex}) - "${currentQuestion.options[currentQuestion.correctAnswerIndex]}"`)
-    console.log(`¿Es correcta?: ${isCorrect ? "SÍ" : "NO"}`)
-    console.log("=============================")
 
     const updatedAnswers = [...testSession.answers]
     updatedAnswers[questionIndex] = answerIndex
@@ -149,14 +142,7 @@ export default function TestPage() {
     try {
       
       let correctAnswers = 0
-      
-      console.log("=== RESUMEN FINAL DE RESPUESTAS ===")
-      console.log("🔍 Datos de la sesión final:", {
-        competence: finalSession.competence,
-        level: finalSession.level,
-        totalQuestions: finalSession.questions.length,
-        answers: finalSession.answers
-      })
+
       
       await Promise.all(finalSession.questions.map(async (question, index) => {
         const userAnswer = finalSession.answers[index]
@@ -182,10 +168,6 @@ export default function TestPage() {
 
   const score = Math.round((correctAnswers / finalSession.questions.length) * 100)
   const passed = correctAnswers >= 2 
-
-      console.log(`RESULTADO FINAL: ${correctAnswers}/${finalSession.questions.length} correctas (${score}%)`)
-      console.log(`¿APROBÓ?: ${passed ? "SÍ" : "NO"} (necesita 2/3 para aprobar)`)
-      console.log("===================================")
 
       const completedSession = {
         ...finalSession,
@@ -286,14 +268,7 @@ export default function TestPage() {
         totalQuestions: finalSession.questions.length,
         isAreaComplete: justCompletedArea // Solo si RECIÉN completó el área
       }
-      
-      console.log("💾 Datos guardados en sessionStorage:", testResultData)
-      console.log("🔍 Verificación de respuestas correctas calculadas:", {
-        finalSession_answers: finalSession.answers,
-        calculated_correctAnswers: correctAnswers,
-        calculated_score: score,
-        expected_vs_actual: `${correctAnswers}/${finalSession.questions.length} = ${score}%`
-      })
+    
       
       try {
         sessionStorage.setItem('testResultData', JSON.stringify(testResultData))

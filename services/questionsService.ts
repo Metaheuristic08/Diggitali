@@ -170,10 +170,9 @@ function getCompetenceColor(code: string): string {
  * Carga preguntas de una competencia específica desde Firestore
  */
 export async function loadQuestionsByCompetence(competenceId: string, level: string = "Básico", count: number = 3): Promise<Question[]> {
-  // ⚠️ LOGS TEMPORALES PARA DIAGNÓSTICO
+  // ✅ LOGS SIMPLIFICADOS (sin stack trace problemático)
   const callId = Date.now() + Math.random()
   console.log(`[Questions call #${callId}] loadQuestionsByCompetence: ${competenceId}::${level}::${count}`)
-  console.trace(`Stack trace for questions call #${callId}`)
   
   if (!db) {
     console.error("Firestore no está inicializado")
@@ -197,18 +196,7 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
         id: doc.id,
         ...doc.data() as Omit<Question, 'id'>
       } as Question
-      
-      // ⚠️ DEBUG: Verificar datos de cada pregunta cargada
-      console.log(`🔍 Pregunta cargada:`, {
-        id: questionData.id,
-        title: questionData.title?.substring(0, 50) + "...",
-        competence: questionData.competence,
-        level: questionData.level,
-        correctAnswerIndex: questionData.correctAnswerIndex,
-        optionsCount: questionData.options?.length || 0,
-        correctOption: questionData.options?.[questionData.correctAnswerIndex]?.substring(0, 30) + "..."
-      })
-      
+
       loadedQuestions.push(questionData)
     })
 
@@ -220,7 +208,7 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
       
       console.log(`✅ ${selectedQuestions.length} preguntas seleccionadas para ${competenceId}/${level}:`)
       selectedQuestions.forEach((q, i) => {
-        console.log(`  ${i + 1}. ${q.title?.substring(0, 40)}... (correcta: opción ${q.correctAnswerIndex + 1})`)
+        console.log(`  ${i + 1}. ${q.title?.substring(0, 40) || "Sin título"}... (correcta: opción ${(q.correctAnswerIndex ?? -1) + 1})`)
       })
       
       return selectedQuestions
