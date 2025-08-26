@@ -3,8 +3,8 @@ import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, lim
 import type { TestSession, Question } from "@/types"
 
 /**
- * Servicio centralizado para el manejo de sesiones de test
- * Previene duplicados y maneja la consolidación de sesiones
+ * DEPRECADO: Reemplazado por simpleSessionService.ts
+ * Se mantiene temporalmente por compatibilidad. Evitar usar en nuevo código.
  */
 
 // ⚠️ LOGS TEMPORALES PARA DIAGNÓSTICO DE DUPLICIDAD
@@ -13,8 +13,8 @@ const pendingRequests = new Map<string, Promise<any>>()
 
 function logFirestoreCall(operation: string, details: string) {
   firestoreCallCounter++
-  console.log(`[Firestore call #${firestoreCallCounter}] ${operation}: ${details}`)
-  console.trace(`Stack trace for call #${firestoreCallCounter}`)
+  // Log compacto sin trace para evitar ruido
+  console.log(`[DEPRECATED testSessionsService #${firestoreCallCounter}] ${operation}: ${details}`)
 }
 
 export interface SessionSearchResult {

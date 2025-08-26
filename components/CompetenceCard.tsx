@@ -105,10 +105,7 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
     return `Nivel ${levelNumber}`
   }, [levelStatus.inProgress, levelStatus.completed, locallyStarted, levelNumber])
 
-  const canStartOrContinue = hasEnoughQuestions && 
-                          !levelStatus.completed
-                          // ✅ DESBLOQUEAR: Quitar restricción de competencias anteriores
-                          // && isPreviousCompetenceCompleted(competence.id, currentAreaLevel)
+  const canStartOrContinue = hasEnoughQuestions && !levelStatus.completed
   const btnLabel = levelStatus.inProgress ? "Continuar" : "Comenzar evaluación"
 
   const handleStartOrContinue = () => {

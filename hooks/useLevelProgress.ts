@@ -328,18 +328,24 @@ function processSessionData(data: any): LevelStatus {
   const total = Math.max(3, answers.length || 3)
   const score: number = typeof data?.score === "number" ? data.score : Math.round((answered / total) * 100)
   const hasEndTime = typeof data?.endTime !== "undefined" && data?.endTime !== null
-  const completed = hasEndTime && score === 100 // 3/3 correctas
+  // Nuevo: considerar flag 'passed' (>= 2/3 correctas) para marcar competencia completada aunque no sea perfecto
+  const passed: boolean = data?.passed === true || score >= 66
+
+  const completed = hasEndTime && (score === 100 || passed)
+  // Si terminó pero no alcanzó el umbral de aprobado, aún mostramos el progreso como intento finalizado
   const inProgress = !hasEndTime && answered > 0
 
   if (completed) {
     return {
       completed: true,
       inProgress: false,
-      answered: total,
+      answered, // conservar número real de respondidas
       total,
-      progressPct: 100
+      progressPct: score === 100 ? 100 : Math.min(99, Math.max(score, Math.round((answered / total) * 100))) // evitar 100 si no perfecto
     }
-  } else if (inProgress) {
+  }
+
+  if (inProgress) {
     return {
       completed: false,
       inProgress: true,
@@ -347,13 +353,14 @@ function processSessionData(data: any): LevelStatus {
       total,
       progressPct: Math.round((answered / total) * 100)
     }
-  } else {
-    return {
-      completed: false,
-      inProgress: false,
-      answered: 0,
-      total,
-      progressPct: 0
-    }
+  }
+
+  // Caso sin actividad
+  return {
+    completed: false,
+    inProgress: false,
+    answered: 0,
+    total,
+    progressPct: 0
   }
 }

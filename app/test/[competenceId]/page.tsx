@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast"
 
 import { saveUserResult } from "@/utils/results-manager"
 import { loadQuestionsByCompetence, updateQuestionStats, loadCompetences } from "@/services/questionsService"
-import { createOrReuseSession, updateSession } from "@/services/testSessionsService"
+// Nuevo servicio simplificado de sesiones
+import { getOrCreateActiveSession, updateSessionAnswer, completeSession } from "@/services/simpleSessionService"
 
 export default function TestPage() {
   const params = useParams()
@@ -24,117 +25,58 @@ export default function TestPage() {
   const [testSession, setTestSession] = useState<TestSession | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // ⚠️ GUARD PARA PREVENIR EJECUCIONES MÚLTIPLES
-  const loadQuestionsRan = useRef(false)
+  // Guard para evitar montajes múltiples
+  const initRan = useRef(false)
 
   
   
 
   useEffect(() => {
-    // ⚠️ GUARD: Prevenir ejecuciones múltiples
-    if (loadQuestionsRan.current) {
-      console.log("⚠️ useEffect ya ejecutado previamente, saltando...")
-      return
-    }
-    
-    if (!user || !userData) {
-      router.push("/")
-      return
-    }
+    if (initRan.current) return
+    if (!user || !userData) return
+    initRan.current = true
+    bootstrap()
+  }, [user, userData])
 
-    
-    const competenceId = params.competenceId as string
-    if (userData.completedCompetences.includes(competenceId)) {
-      console.log(`Usuario ya completó la competencia: ${competenceId}. Redirigiendo a resultados.`)
-      
-      // Limpiar sessionStorage para evitar mostrar datos incorrectos
-      try {
-        sessionStorage.removeItem('testResultData')
-      } catch (error) {
-        console.error('Error limpiando sessionStorage:', error)
-      }
-      
-      router.push(`/test/${competenceId}/results?score=100&passed=true&correct=3&completed=true`)
-      return
-    }
-
-    // Marcar como ejecutado ANTES de la llamada async
-    loadQuestionsRan.current = true
-    loadQuestions()
-  }, [user, userData, params.competenceId, router])
-
-  const loadQuestions = async () => {
+  // Carga inicial de preguntas + sesión
+  const bootstrap = async () => {
     try {
       const competenceId = params.competenceId as string
       const levelParam = (searchParams.get("level") || "basico").toLowerCase()
       const levelName = levelParam.startsWith("b") ? "Básico" : levelParam.startsWith("i") ? "Intermedio" : "Avanzado"
 
-      if (!db) {
-        throw new Error("Firebase no está inicializado. Por favor, comprueba tu conexión a Internet.")
+  const comps = await loadCompetences() // solo para nombres/dimensiones si se requiere más adelante
+
+      // Si ya completada y usuario entra de nuevo -> enviar a resultados (no recrear sesión automáticamente)
+      if (userData.completedCompetences.includes(competenceId)) {
+        router.push(`/test/${competenceId}/results?completed=true&score=100&passed=true&correct=3&level=${levelParam}`)
+        return
       }
-      
-      console.log(`🔄 Cargando/creando sesión para competencia: ${competenceId}, nivel: ${levelParam}`)
-      
+
       const loadedQuestions = await loadQuestionsByCompetence(competenceId, levelName, 3)
-      
-      if (loadedQuestions.length < 3) {
-        throw new Error(`No hay suficientes preguntas para la competencia ${competenceId}`)
-      }
-      
+      if (loadedQuestions.length < 3) throw new Error(`No hay suficientes preguntas para la competencia ${competenceId}`)
       setQuestions(loadedQuestions)
-      
-      // ✅ USAR EL NUEVO SERVICIO EN LUGAR DE CREAR SESIONES DUPLICADAS
-      const session = await createOrReuseSession(
-        user!.uid,
-        competenceId,
-        levelParam,
-        loadedQuestions
-      )
-      
-      console.log(`✅ Sesión obtenida: ${session.id ? (session.answers?.some(a => a !== null) ? 'existente en progreso' : 'existente inicial') : 'nueva'}`)
+
+      const { session } = await getOrCreateActiveSession(user!.uid, competenceId, levelParam, loadedQuestions)
       setTestSession(session)
-    } catch (error) {
-      console.error("Error loading questions:", error)
-      toast({
-        title: "Error al cargar preguntas",
-        description: error instanceof Error ? error.message : "No se pudieron cargar las preguntas. Verifica que hay suficientes preguntas en la base de datos.",
-        variant: "destructive",
-      })
-      
+    } catch (e) {
+      console.error("Error inicializando test:", e)
+      toast({ title: "Error", description: e instanceof Error ? e.message : "No se pudo iniciar la evaluación", variant: "destructive" })
       router.push('/dashboard')
     } finally {
       setLoading(false)
     }
   }
 
+  // Eliminado loadQuestions antiguo
+
   const handleAnswerSubmit = async (answerIndex: number, questionIndex: number) => {
     if (!testSession) return
-
-    
-    const currentQuestion = testSession.questions[questionIndex]
-    const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
-    
-
-    const updatedAnswers = [...testSession.answers]
-    updatedAnswers[questionIndex] = answerIndex
-
-    const updatedSession = {
-      ...testSession,
-      answers: updatedAnswers,
-    }
-
-    setTestSession(updatedSession)
-
-    // ✅ USAR EL NUEVO SERVICIO PARA ACTUALIZAR
     try {
-      if (updatedSession.id) {
-        await updateSession(updatedSession.id, {
-          answers: updatedSession.answers,
-          currentQuestionIndex: questionIndex,
-        })
-      }
+      const updated = await updateSessionAnswer(testSession, questionIndex, answerIndex)
+      if (updated) setTestSession(updated)
     } catch (e) {
-      console.error("No se pudo actualizar el progreso de la sesión:", e)
+      console.error("No se pudo actualizar respuesta:", e)
     }
   }
 
@@ -176,26 +118,8 @@ export default function TestPage() {
         passed,
       }
 
-      // ✅ USAR EL NUEVO SERVICIO PARA ACTUALIZAR (NO CREAR NUEVA SESIÓN)
-      if (db) {
-        try {
-          if (finalSession.id) {
-            await updateSession(finalSession.id, {
-              endTime: completedSession.endTime,
-              score: completedSession.score,
-              passed: completedSession.passed,
-              answers: completedSession.answers,
-            })
-          } else {
-            // Solo si no hay ID (caso excepcional), usar el servicio para crear
-            console.warn("⚠️ Sesión sin ID, esto no debería pasar con el nuevo servicio")
-            // En caso extremo, crear una nueva sesión completada
-            await addDoc(collection(db, "testSessions"), completedSession)
-          }
-        } catch (error) {
-          console.error("Error saving test session:", error)
-        }
-      }
+  // Completar sesión simplificada
+  await completeSession(completedSession, correctAnswers)
 
       
       try {
@@ -279,7 +203,8 @@ export default function TestPage() {
 
       // ✅ ARREGLO: Solo marcar areaCompleted=1 si RECIÉN completó toda el área
       const areaCompletedParam = justCompletedArea ? "1" : "0"
-      router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=${areaCompletedParam}&level=${levelParam}`)
+  // Sin cache local ya
+  router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=${areaCompletedParam}&level=${levelParam}`)
     } catch (error) {
       console.error("Error saving test results:", error)
       toast({

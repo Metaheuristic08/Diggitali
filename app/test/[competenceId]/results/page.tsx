@@ -17,6 +17,8 @@ function TestResultsContent() {
   const router = useRouter()
   const params = useParams()
   const { user } = useAuth()
+  // ✅ FIX: Definir competenceId localmente (antes provocaba ReferenceError al usar variable no declarada)
+  const competenceId = params?.competenceId as string | undefined
 
   const score = Number.parseInt(searchParams.get("score") || "0")
   const passed = searchParams.get("passed") === "true"
@@ -108,7 +110,7 @@ function TestResultsContent() {
 
   useEffect(() => {
     // Prevenir múltiples ejecuciones con dependencias específicas
-    if (hasLoadedOnce || !user?.uid || !params.competenceId) return
+  if (hasLoadedOnce || !user?.uid || !competenceId) return
 
     const run = async () => {
       setLoadingArea(true)
@@ -126,6 +128,7 @@ function TestResultsContent() {
             // Validar que los datos coincidan con la competencia y nivel actuales
             const isValidData = testResultData.questions &&
               testResultData.answers &&
+              competenceId &&
               testResultData.competence === competenceId &&
               testResultData.level &&
               testResultData.level.toLowerCase() === levelParam.toLowerCase()
@@ -153,7 +156,9 @@ function TestResultsContent() {
         // Si areaCompleted es true, cargar TODAS las preguntas del área
         if (areaCompleted && !questionsLoaded) {
           console.log('🏆 Área completa detectada, cargando todas las preguntas desde Firebase...')
-          await loadAllAreaQuestions(competenceId)
+          if (competenceId) {
+            await loadAllAreaQuestions(competenceId)
+          }
           questionsLoaded = true
         }
 
