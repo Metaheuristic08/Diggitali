@@ -172,6 +172,7 @@ function TestResultsContent() {
         // Si no se cargaron las preguntas aún, cargar desde Firebase como respaldo
         if (!questionsLoaded && db) {
           console.log('🔄 Cargando sesión desde Firebase como respaldo...')
+          console.log(`🔍 Buscando sesión: userId=${user.uid}, competence=${competenceId}, level=${levelParam}`)
 
           // Buscar todas las sesiones de la competencia/nivel y consolidar
           const sessionQuery = query(
@@ -191,6 +192,13 @@ function TestResultsContent() {
             } as TestSession & { id: string }))
 
             console.log(`📋 Encontradas ${sessions.length} sesiones para ${competenceId}/${levelParam}`)
+            console.log('📋 Sesiones encontradas:', sessions.map(s => ({ 
+              id: s.id, 
+              competence: s.competence, 
+              level: s.level, 
+              endTime: s.endTime, 
+              score: s.score 
+            })))
 
             // Priorizar: completadas > en progreso > inicial
             const completedSessions = sessions.filter((s: any) => s.endTime)
@@ -235,10 +243,41 @@ function TestResultsContent() {
             }
           } else {
             console.log("❌ No se encontró sesión en Firebase para esta competencia y nivel")
+            console.log(`🔍 Búsqueda realizada: userId=${user.uid}, competence=${competenceId}, level=${levelParam}`)
+            
+            // ✅ DEBUGGING: Intentar buscar TODAS las sesiones del usuario para ver qué hay
+            const allSessionsQuery = query(
+              collection(db, "testSessions"),
+              where("userId", "==", user.uid)
+            )
+            const allSnapshot = await getDocs(allSessionsQuery)
+            console.log(`🔍 TOTAL sesiones del usuario: ${allSnapshot.size}`)
+            allSnapshot.docs.forEach(doc => {
+              const data = doc.data()
+              console.log(`  - ${data.competence}/${data.level} (score: ${data.score || 0}, endTime: ${data.endTime ? 'SI' : 'NO'})`)
+            })
           }
         }
 
-        if (!areaCompleted) return
+        if (!areaCompleted) {
+          // ✅ NUEVO: Detectar siguiente competencia incluso si área no está completa
+          const comps = await loadCompetences()
+          const current = comps.find(c => c.id === competenceId)
+          if (current) {
+            const inArea = comps.filter(c => c.dimension === current.dimension).sort((a, b) => a.code.localeCompare(b.code))
+            const currentIndex = inArea.findIndex(c => c.id === competenceId)
+            const nextCompetence = inArea[currentIndex + 1]
+            if (nextCompetence) {
+              setNextCompetenceInfo({
+                id: nextCompetence.id,
+                name: nextCompetence.name
+              })
+            } else {
+              setNextCompetenceInfo(null)
+            }
+          }
+          return
+        }
 
         const comps = await loadCompetences()
         const current = comps.find(c => c.id === competenceId)
@@ -246,7 +285,7 @@ function TestResultsContent() {
         const inArea = comps.filter(c => c.dimension === current.dimension).sort((a, b) => a.code.localeCompare(b.code))
         setFirstCompetenceInArea(inArea[0]?.id || null)
 
-        // ✅ NUEVO: Detectar siguiente competencia en orden progresivo
+        // ✅ NUEVO: Detectar siguiente competencia en orden progresivo (para área completada)
         const currentIndex = inArea.findIndex(c => c.id === competenceId)
         const nextCompetence = inArea[currentIndex + 1]
         if (nextCompetence) {

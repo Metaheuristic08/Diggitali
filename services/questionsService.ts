@@ -193,17 +193,37 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
     const loadedQuestions: Question[] = []
 
     querySnapshot.forEach((doc) => {
-      loadedQuestions.push({
+      const questionData = {
         id: doc.id,
         ...doc.data() as Omit<Question, 'id'>
-      } as Question)
+      } as Question
+      
+      // ⚠️ DEBUG: Verificar datos de cada pregunta cargada
+      console.log(`🔍 Pregunta cargada:`, {
+        id: questionData.id,
+        title: questionData.title?.substring(0, 50) + "...",
+        competence: questionData.competence,
+        level: questionData.level,
+        correctAnswerIndex: questionData.correctAnswerIndex,
+        optionsCount: questionData.options?.length || 0,
+        correctOption: questionData.options?.[questionData.correctAnswerIndex]?.substring(0, 30) + "..."
+      })
+      
+      loadedQuestions.push(questionData)
     })
 
 
     if (loadedQuestions.length >= count) {
-      return loadedQuestions
+      const selectedQuestions = loadedQuestions
         .sort(() => 0.5 - Math.random())
         .slice(0, count)
+      
+      console.log(`✅ ${selectedQuestions.length} preguntas seleccionadas para ${competenceId}/${level}:`)
+      selectedQuestions.forEach((q, i) => {
+        console.log(`  ${i + 1}. ${q.title?.substring(0, 40)}... (correcta: opción ${q.correctAnswerIndex + 1})`)
+      })
+      
+      return selectedQuestions
     }
 
 

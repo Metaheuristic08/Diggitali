@@ -151,7 +151,12 @@ export default function TestPage() {
       let correctAnswers = 0
       
       console.log("=== RESUMEN FINAL DE RESPUESTAS ===")
-      
+      console.log("🔍 Datos de la sesión final:", {
+        competence: finalSession.competence,
+        level: finalSession.level,
+        totalQuestions: finalSession.questions.length,
+        answers: finalSession.answers
+      })
       
       await Promise.all(finalSession.questions.map(async (question, index) => {
         const userAnswer = finalSession.answers[index]
@@ -161,10 +166,14 @@ export default function TestPage() {
         console.log(`  Usuario respondió: ${userAnswer !== null ? `Opción ${userAnswer + 1} (índice ${userAnswer}) - "${question.options[userAnswer]}"` : "No respondió"}`)
         console.log(`  Respuesta correcta: Opción ${question.correctAnswerIndex + 1} (índice ${question.correctAnswerIndex}) - "${question.options[question.correctAnswerIndex]}"`)
         console.log(`  ¿Correcta?: ${wasCorrect ? "SÍ" : "NO"}`)
+        console.log(`  🔍 DEBUG: userAnswer=${userAnswer}, correctAnswerIndex=${question.correctAnswerIndex}, comparison=${userAnswer} === ${question.correctAnswerIndex} = ${wasCorrect}`)
         console.log("---")
         
         if (wasCorrect) {
           correctAnswers++
+          console.log(`✅ Respuesta ${index + 1} marcada como correcta. Total correctas: ${correctAnswers}`)
+        } else {
+          console.log(`❌ Respuesta ${index + 1} marcada como incorrecta.`)
         }
         
         
@@ -256,8 +265,15 @@ export default function TestPage() {
         }
       }
 
-      // ✅ CAMBIO: NO navegar automáticamente - mostrar siempre resultados
-      // El usuario decidirá manualmente si continuar con la siguiente competencia
+      // ✅ ARREGLO: Determinar si RECIÉN se completó el área vs ya estaba completa
+      const wasAreaAlreadyComplete = allCompletedAtLevel && nextCompetenceId !== params.competenceId
+      const justCompletedArea = allCompletedAtLevel && !wasAreaAlreadyComplete
+
+      console.log(`🎯 Estado del área:`)
+      console.log(`  - allCompletedAtLevel: ${allCompletedAtLevel}`)
+      console.log(`  - wasAreaAlreadyComplete: ${wasAreaAlreadyComplete}`)
+      console.log(`  - justCompletedArea: ${justCompletedArea}`)
+      console.log(`  - nextCompetenceId: ${nextCompetenceId}`)
       
       // Guardar datos del test en sessionStorage para la página de resultados
       const testResultData = {
@@ -268,8 +284,16 @@ export default function TestPage() {
         score,
         correctAnswers,
         totalQuestions: finalSession.questions.length,
-        isAreaComplete: allCompletedAtLevel // Indicar si el área está completa
+        isAreaComplete: justCompletedArea // Solo si RECIÉN completó el área
       }
+      
+      console.log("💾 Datos guardados en sessionStorage:", testResultData)
+      console.log("🔍 Verificación de respuestas correctas calculadas:", {
+        finalSession_answers: finalSession.answers,
+        calculated_correctAnswers: correctAnswers,
+        calculated_score: score,
+        expected_vs_actual: `${correctAnswers}/${finalSession.questions.length} = ${score}%`
+      })
       
       try {
         sessionStorage.setItem('testResultData', JSON.stringify(testResultData))
@@ -278,8 +302,9 @@ export default function TestPage() {
         console.error('Error guardando datos en sessionStorage:', error)
       }
 
-      // Área completa en este nivel → ir a resultados agregados con pistas
-      router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=1&level=${levelParam}`)
+      // ✅ ARREGLO: Solo marcar areaCompleted=1 si RECIÉN completó toda el área
+      const areaCompletedParam = justCompletedArea ? "1" : "0"
+      router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=${areaCompletedParam}&level=${levelParam}`)
     } catch (error) {
       console.error("Error saving test results:", error)
       toast({
