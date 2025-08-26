@@ -155,18 +155,29 @@ export default function Dashboard() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
                     {competences.map((competence) => {
-                      const level = currentAreaLevel(competence.dimension)
-                      const status = perCompetenceLevel[competence.id]?.[level] || { completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 }
-                      const area = areaStats[competence.dimension]?.[level]
+                      // Nivel "global" del área (para navegación futura)
+                      const areaLevel = currentAreaLevel(competence.dimension)
+                      // Determinar el nivel que realmente tiene datos para esta competencia
+                      const allLevels: Array<"Básico"|"Intermedio"|"Avanzado"> = ["Básico","Intermedio","Avanzado"]
+                      let displayLevel: "Básico"|"Intermedio"|"Avanzado" = areaLevel
+                      for (const lvl of allLevels) {
+                        const st = perCompetenceLevel[competence.id]?.[lvl]
+                        if (st && (st.completed || st.inProgress || st.answered>0)) {
+                          displayLevel = lvl
+                          break // mostrar el primer nivel con actividad (Básico primero)
+                        }
+                      }
+                      const status = perCompetenceLevel[competence.id]?.[displayLevel] || { completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 }
+                      const area = areaStats[competence.dimension]?.[displayLevel]
                       const isAreaCompleted = !!area && area.completedCount === area.totalCount
-                      const nextId = nextCompetenceToAttempt(competence.dimension, level)
+                      const nextId = nextCompetenceToAttempt(competence.dimension, displayLevel)
                       const isNextCandidate = nextId === competence.id
                       return (
                         <CompetenceCard
                           key={competence.id}
                           competence={competence}
                           questionCount={counts[competence.id] || 0}
-                          currentAreaLevel={level}
+                          currentAreaLevel={displayLevel}
                           levelStatus={status}
                           areaCompletedAtLevel={isAreaCompleted}
                           isNextCandidate={isNextCandidate}

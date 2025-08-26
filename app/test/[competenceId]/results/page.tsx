@@ -728,7 +728,7 @@ function TestResultsContent() {
                   onClick={handleContinueToNextCompetence}
                   className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold"
                 >
-                  ▶️ Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
+                  Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
                 </Button>
               ) : !areaCompleted && !nextCompetenceInfo && passed ? (
                 // No hay más competencias en el área, ir al dashboard
