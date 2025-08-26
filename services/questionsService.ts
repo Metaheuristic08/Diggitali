@@ -2,17 +2,13 @@ import { db } from "@/lib/firebase"
 import type { Question, Competence } from "@/types"
 import { collection, query, where, getDocs, updateDoc, doc, increment, getDoc, orderBy, limit } from "firebase/firestore"
 
-// Cache global para competencias
 let competencesCache: Competence[] | null = null
 let cacheTimestamp: number = 0
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+const CACHE_DURATION = 5 * 60 * 1000
 
-/**
- * Carga todas las competencias disponibles
- * Se incluyen todas las competencias predefinidas, independientemente de si tienen preguntas o no
- */
+
 export async function loadCompetences(): Promise<Competence[]> {
-  // Verificar cache válido
+ 
   const now = Date.now()
   if (competencesCache && (now - cacheTimestamp) < CACHE_DURATION) {
     console.log(`📋 Usando caché de competencias (${competencesCache.length} items)`)
@@ -65,7 +61,7 @@ export async function loadCompetences(): Promise<Competence[]> {
 
     const competences = Array.from(competenceMap.values()).sort((a, b) => a.code.localeCompare(b.code))
 
-    // Actualizar cache
+   
     competencesCache = competences
     cacheTimestamp = now
 
@@ -77,9 +73,6 @@ export async function loadCompetences(): Promise<Competence[]> {
   }
 }
 
-/**
- * Obtiene el nombre de la competencia basado en su código
- */
 function getCompetenceName(code: string): string {
   const names: Record<string, string> = {
     "1.1": "Navegar, buscar y filtrar datos, información y contenidos digitales",
@@ -105,9 +98,7 @@ function getCompetenceName(code: string): string {
 }
 
 
-/**
- * Obtiene la dimensión de la competencia basado en su código
- */
+
 function getCompetenceDimension(code: string): string {
   if (code.startsWith("1.")) {
     return "Búsqueda y gestión de información"
@@ -122,9 +113,7 @@ function getCompetenceDimension(code: string): string {
 }
 
 
-/**
- * Obtiene la descripción de la competencia basado en su código
- */
+
 function getCompetenceDescription(code: string): string {
   const descriptions: Record<string, string> = {
     "1.1": "Articular las necesidades de información, buscar datos, información y contenidos en entornos digitales.",
@@ -150,9 +139,6 @@ function getCompetenceDescription(code: string): string {
 }
 
 
-/**
- * Obtiene el color de la competencia basado en su código
- */
 function getCompetenceColor(code: string): string {
   const colors: Record<string, string> = {
     "1.1": "from-orange-400 to-red-500",
@@ -166,11 +152,9 @@ function getCompetenceColor(code: string): string {
   return colors[code] || "from-gray-400 to-gray-500"
 }
 
-/**
- * Carga preguntas de una competencia específica desde Firestore
- */
+
 export async function loadQuestionsByCompetence(competenceId: string, level: string = "Básico", count: number = 3): Promise<Question[]> {
-  // ✅ LOGS SIMPLIFICADOS (sin stack trace problemático)
+ 
   const callId = Date.now() + Math.random()
   console.log(`[Questions call #${callId}] loadQuestionsByCompetence: ${competenceId}::${level}::${count}`)
   
@@ -246,9 +230,6 @@ export async function loadQuestionsByCompetence(competenceId: string, level: str
   }
 }
 
-/**
- * Actualiza las estadísticas de una pregunta después de ser contestada
- */
 export async function updateQuestionStats(questionId: string, wasCorrect: boolean): Promise<void> {
   if (!db) {
     console.error("Firestore no está inicializado")

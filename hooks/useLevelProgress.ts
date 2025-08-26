@@ -12,7 +12,7 @@ type LevelName = "Básico" | "Intermedio" | "Avanzado"
 const LEVELS: LevelName[] = ["Básico", "Intermedio", "Avanzado"]
 
 export interface LevelStatus {
-  completed: boolean // 3/3 correctas en ese nivel
+  completed: boolean
   inProgress: boolean
   answered: number
   total: number
@@ -48,7 +48,7 @@ export function useLevelProgress(): UseLevelProgressResult {
   const [loading, setLoading] = useState(true)
   const [perCompetenceLevel, setPerCompetenceLevel] = useState<CompetenceLevelMap>({})
 
-  // Efecto para escuchar cambios en las sesiones del usuario
+ 
   useEffect(() => {
     if (!user?.uid || !db || loadingCompetences) {
       setLoading(false)
@@ -57,11 +57,11 @@ export function useLevelProgress(): UseLevelProgressResult {
 
     let unsubscribe: Unsubscribe | null = null
 
-    // Configurar listener en tiempo real para las sesiones del usuario
+   
     const q = query(collection(db, "testSessions"), where("userId", "==", user.uid))
     
     unsubscribe = onSnapshot(q, (snapshot) => {
-      // Inicializar estructura
+     
       const initStatus = (): LevelStatus => ({ completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 })
       const map: CompetenceLevelMap = {} as CompetenceLevelMap
       for (const c of competences) {
@@ -72,7 +72,7 @@ export function useLevelProgress(): UseLevelProgressResult {
         }
       }
 
-      // Agrupar sesiones por competencia/nivel para consolidación
+     
       const sessionGroups: Record<string, Array<{doc: any, data: any}>> = {}
       
       snapshot.forEach((docSnap) => {
@@ -91,7 +91,7 @@ export function useLevelProgress(): UseLevelProgressResult {
         sessionGroups[key].push({ doc: docSnap, data })
       })
 
-      // Consolidar cada grupo de sesiones
+     
       Object.entries(sessionGroups).forEach(([key, sessions]) => {
         const [cid, levelNorm] = key.split(':') as [string, LevelName]
         
@@ -99,7 +99,7 @@ export function useLevelProgress(): UseLevelProgressResult {
           console.warn(`⚠️ Encontradas ${sessions.length} sesiones duplicadas para ${cid}/${levelNorm}`)
         }
 
-        // Aplicar lógica de consolidación mejorada
+       
         const consolidatedStatus = consolidateSessionGroup(sessions)
         map[cid][levelNorm] = consolidatedStatus
       })
@@ -107,7 +107,7 @@ export function useLevelProgress(): UseLevelProgressResult {
       setPerCompetenceLevel(map)
       setLoading(false)
       
-      // ✅ DEBUGGING MEJORADO: Log detallado de cada competencia
+     
       const totalSessions = snapshot.size
       const completedLevels = Object.values(map).reduce((acc, comp) => {
         return acc + Object.values(comp).filter(level => level.completed).length
@@ -125,7 +125,7 @@ export function useLevelProgress(): UseLevelProgressResult {
         })
         console.log(`📋 Sesiones encontradas:`, sessionDetails)
         
-        // ✅ NUEVO: Log del estado consolidado de cada competencia
+       
         console.log(`📊 ESTADO CONSOLIDADO POR COMPETENCIA:`)
         Object.entries(map).forEach(([competenceId, levels]) => {
           Object.entries(levels).forEach(([level, status]) => {
@@ -147,14 +147,14 @@ export function useLevelProgress(): UseLevelProgressResult {
     }
   }, [user?.uid, competences, loadingCompetences])
 
-  // Mapa de dimensiones por competencia
+ 
   const dimensionByCompetence = useMemo(() => {
     const out: Record<string, string> = {}
     for (const c of competences) out[c.id] = c.dimension
     return out
   }, [competences])
 
-  // Estadísticas por área y nivel
+ 
   const areaStats = useMemo(() => {
     const stats: AreaStatsByLevel = {}
     for (const c of competences) {
@@ -169,7 +169,7 @@ export function useLevelProgress(): UseLevelProgressResult {
     return stats
   }, [competences, perCompetenceLevel])
 
-  // Función para determinar el nivel actual de un área
+ 
   const currentAreaLevel = (dimension: string): LevelName => {
     const areaCompetences = competences.filter(c => c.dimension === dimension)
     if (!areaCompetences.length) return "Básico"
@@ -187,15 +187,15 @@ export function useLevelProgress(): UseLevelProgressResult {
     return "Básico"
   }
 
-  // Función para sugerir la siguiente competencia a intentar
+ 
   const nextCompetenceToAttempt = (dimension: string, level: LevelName): string | null => {
     const areaCompetences = competences.filter(c => c.dimension === dimension)
     if (!areaCompetences.length) return null
     
-    // ✅ CAMBIO: Orden estrictamente progresivo
+   
     const sortedCompetences = areaCompetences.sort((a, b) => a.code.localeCompare(b.code))
     
-    // Buscar la primera competencia no completada en orden estricto
+   
     const firstIncomplete = sortedCompetences.find(c => 
       !perCompetenceLevel[c.id]?.[level]?.completed
     )
@@ -203,7 +203,7 @@ export function useLevelProgress(): UseLevelProgressResult {
     return firstIncomplete?.id || null
   }
 
-  // ✅ NUEVA: Función para verificar si la competencia anterior está completada
+ 
   const isPreviousCompetenceCompleted = (competenceId: string, level: LevelName): boolean => {
     const currentCompetence = competences.find(c => c.id === competenceId)
     if (!currentCompetence) return false
@@ -214,10 +214,10 @@ export function useLevelProgress(): UseLevelProgressResult {
     
     const currentIndex = areaCompetences.findIndex(c => c.id === competenceId)
     
-    // Si es la primera competencia del área, está habilitada
+   
     if (currentIndex === 0) return true
     
-    // Verificar que todas las competencias anteriores estén completadas
+   
     for (let i = 0; i < currentIndex; i++) {
       const prevCompetence = areaCompetences[i]
       const isCompleted = perCompetenceLevel[prevCompetence.id]?.[level]?.completed
@@ -247,13 +247,6 @@ function normalizeLevel(raw: string): LevelName | null {
   return null
 }
 
-/**
- * Consolida un grupo de sesiones duplicadas para la misma competencia/nivel
- * Aplica la siguiente priorización:
- * 1. Sesiones completadas (endTime definido y score = 100)
- * 2. Sesiones en progreso con mayor número de respuestas
- * 3. Sesiones más recientes
- */
 function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelStatus {
   const initStatus = (): LevelStatus => ({ completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 })
   
@@ -262,13 +255,13 @@ function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelS
   }
 
   if (sessions.length === 1) {
-    // Solo una sesión, procesarla directamente
+   
     return processSessionData(sessions[0].data)
   }
 
   console.log(`🔄 Consolidando ${sessions.length} sesiones duplicadas...`)
 
-  // Separar sesiones completadas de las en progreso
+ 
   const processedSessions = sessions.map(s => ({
     ...s,
     processed: processSessionData(s.data)
@@ -278,7 +271,7 @@ function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelS
   const inProgressSessions = processedSessions.filter(s => s.processed.inProgress)
   const initialSessions = processedSessions.filter(s => !s.processed.completed && !s.processed.inProgress)
 
-  // Prioridad 1: Sesiones completadas (tomar la más reciente)
+ 
   if (completedSessions.length > 0) {
     const latest = completedSessions.sort((a, b) => {
       const timeA = a.data.endTime || a.data.startTime
@@ -290,14 +283,14 @@ function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelS
     return latest.processed
   }
 
-  // Prioridad 2: Sesiones en progreso (la que tiene más respuestas)
+ 
   if (inProgressSessions.length > 0) {
     const bestInProgress = inProgressSessions.sort((a, b) => {
-      // Primero por número de respuestas
+     
       if (a.processed.answered !== b.processed.answered) {
         return b.processed.answered - a.processed.answered
       }
-      // Si empatan, por más reciente
+     
       return new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
     })[0]
     
@@ -305,7 +298,7 @@ function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelS
     return bestInProgress.processed
   }
 
-  // Prioridad 3: Sesiones iniciales (la más reciente)
+ 
   if (initialSessions.length > 0) {
     const latest = initialSessions.sort((a, b) => 
       new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
@@ -315,33 +308,31 @@ function consolidateSessionGroup(sessions: Array<{doc: any, data: any}>): LevelS
     return latest.processed
   }
 
-  // Fallback
+ 
   return initStatus()
 }
 
-/**
- * Procesa los datos de una sesión individual y retorna el LevelStatus correspondiente
- */
+
 function processSessionData(data: any): LevelStatus {
   const answers: Array<number | null> = Array.isArray(data?.answers) ? data.answers : []
   const answered = answers.filter(a => a !== null && a !== undefined).length
   const total = Math.max(3, answers.length || 3)
   const score: number = typeof data?.score === "number" ? data.score : Math.round((answered / total) * 100)
   const hasEndTime = typeof data?.endTime !== "undefined" && data?.endTime !== null
-  // Nuevo: considerar flag 'passed' (>= 2/3 correctas) para marcar competencia completada aunque no sea perfecto
+ 
   const passed: boolean = data?.passed === true || score >= 66
 
   const completed = hasEndTime && (score === 100 || passed)
-  // Si terminó pero no alcanzó el umbral de aprobado, aún mostramos el progreso como intento finalizado
+ 
   const inProgress = !hasEndTime && answered > 0
 
   if (completed) {
     return {
       completed: true,
       inProgress: false,
-      answered, // conservar número real de respondidas
+      answered,
       total,
-      progressPct: score === 100 ? 100 : Math.min(99, Math.max(score, Math.round((answered / total) * 100))) // evitar 100 si no perfecto
+      progressPct: score === 100 ? 100 : Math.min(99, Math.max(score, Math.round((answered / total) * 100)))
     }
   }
 
@@ -355,7 +346,7 @@ function processSessionData(data: any): LevelStatus {
     }
   }
 
-  // Caso sin actividad
+ 
   return {
     completed: false,
     inProgress: false,

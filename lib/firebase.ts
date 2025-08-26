@@ -14,7 +14,6 @@ export const firebaseConfig = {
   measurementId: "G-RT3XB7QGP0",
 };
 
-// Inicialización segura de Firebase solo en el cliente
 let app: FirebaseApp | undefined
 let auth: Auth | undefined
 let db: Firestore | undefined
@@ -22,10 +21,9 @@ let analytics: Analytics | null = null
 let storage: FirebaseStorage | undefined
 let provider: GoogleAuthProvider | undefined
 
-// Inicializa Firebase solo en el cliente
 if (typeof window !== 'undefined') {
   try {
-    // Evitar múltiples inicializaciones
+   
     if (getApps().length === 0) {
       app = initializeApp(firebaseConfig)
     } else {

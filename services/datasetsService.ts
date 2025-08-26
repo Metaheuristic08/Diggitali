@@ -1,8 +1,8 @@
 export interface DatasetMeta {
   id?: string
-  competence: string // e.g., '1.3'
+  competence: string
   level: 'Avanzado' | 'Básico' | 'Intermedio'
-  exercise: string // e.g., 'ej1'
+  exercise: string
   filename: string
   mimeType: string
   url: string
@@ -13,7 +13,7 @@ export async function uploadDataset(
   file: File,
   meta: { competence: string; level: DatasetMeta['level']; exercise: string }
 ): Promise<DatasetMeta> {
-  // Construir ruta de subida local según los endpoints implementados (solo ej1 actualmente)
+ 
   const comp = encodeURIComponent(meta.competence)
   const lvl = encodeURIComponent(meta.level.toLowerCase())
   const ex = encodeURIComponent(meta.exercise)

@@ -84,7 +84,7 @@ export default function AuthForm() {
     } catch (error: any) {
       console.error("Auth error:", error)
       let errorMessage = "Ha ocurrido un error inesperado"
-      // ... (error handling logic remains the same)
+     
       toast({
         title: "Error",
         description: errorMessage,

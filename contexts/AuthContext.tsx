@@ -64,8 +64,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           try {
             if (user) {
               setUser(user)
-              
-              // Configurar listener en tiempo real para el documento del usuario
+
+
               if (db) {
                 userDocUnsubscribe = onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                   if (docSnapshot.exists()) {
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             } else {
               setUser(null)
               setUserData(null)
-              // Limpiar listener del documento del usuario si existe
+
               if (userDocUnsubscribe) {
                 userDocUnsubscribe()
                 userDocUnsubscribe = undefined
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    // Ejecutar inmediatamente sin timeout
+
     initAuth()
 
     return () => {
@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      
+
       if (!email || !password || !name || !age || !country) {
         throw new Error("Todos los campos son requeridos")
       }
@@ -157,7 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      
+
       if (!email || !password) {
         throw new Error("Email y contraseña son requeridos")
       }

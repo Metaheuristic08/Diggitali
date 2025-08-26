@@ -1,7 +1,3 @@
-/**
- * Script de verificación rápida para probar los cambios
- */
-
 const { initializeApp } = require("firebase/app")
 const { getFirestore, collection, getDocs, query, where } = require("firebase/firestore")
 
@@ -14,13 +10,13 @@ async function verifyCurrentState() {
   console.log("🔍 Verificando estado actual de sesiones...")
   
   try {
-    // Obtener todas las sesiones
+   
     const allSessionsQuery = query(collection(db, "testSessions"))
     const allSessionsSnapshot = await getDocs(allSessionsQuery)
     
     console.log(`📊 Total de sesiones en Firebase: ${allSessionsSnapshot.size}`)
     
-    // Agrupar por competencia/nivel
+   
     const groups = {}
     allSessionsSnapshot.forEach(doc => {
       const data = doc.data()
@@ -51,7 +47,7 @@ async function verifyCurrentState() {
       }
     })
     
-    // Verificar duplicados
+   
     const duplicateGroups = Object.entries(groups).filter(([, sessions]) => sessions.length > 1)
     
     if (duplicateGroups.length === 0) {

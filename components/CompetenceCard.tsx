@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useMemo, useState } from "react"
 
-// ✅ NUEVO: Función auxiliar para obtener nombre de dimensión
 const getDimensionName = (dimension: string): string => {
   const dimensionNames: Record<string, string> = {
     "Búsqueda y gestión de información": "Búsqueda y Gestión de Información",
@@ -74,10 +73,10 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
 
   const circumference = useMemo(() => 2 * Math.PI * 18, [])
   
-  // ✅ MEJORA: Ring con progreso inicial cuando se inicia localmente
+ 
   const effectiveProgressPct = useMemo(() => {
     if (locallyStarted && !levelStatus.inProgress && !levelStatus.completed) {
-      return 15 // Mostrar progreso inicial del 15% al iniciar
+      return 15
     }
     return levelStatus.progressPct
   }, [levelStatus.progressPct, levelStatus.inProgress, levelStatus.completed, locallyStarted])
@@ -86,22 +85,22 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
 
   const showDash = levelStatus.inProgress || levelStatus.completed || locallyStarted
   
-  // Lógica corregida para mostrar el nivel correcto según las reglas del bug
+ 
   const labelText = useMemo(() => {
-    // Si no tiene progreso, mostrar guion
+   
     if (!levelStatus.inProgress && !levelStatus.completed && !locallyStarted) {
       return "-"
     }
     
-    // Si completó este nivel, mostrar el siguiente nivel disponible
+   
     if (levelStatus.completed) {
       const nextLevelNumber = levelNumber + 1
-      // Si hay un siguiente nivel disponible, mostrarlo; sino mostrar el nivel actual
+     
       const displayLevel = nextLevelNumber <= 3 ? nextLevelNumber : levelNumber
       return `Nivel ${displayLevel}`
     }
     
-    // Si está en progreso o se inició localmente, mostrar el nivel actual
+   
     return `Nivel ${levelNumber}`
   }, [levelStatus.inProgress, levelStatus.completed, locallyStarted, levelNumber])
 
@@ -111,11 +110,11 @@ export default function CompetenceCard({ competence, questionCount = 0, currentA
   const handleStartOrContinue = () => {
     if (!canStartOrContinue) return
     
-    // ✅ MEJORA: Confirmación con contexto del área y progreso
+   
     const dimensionName = getDimensionName(competence.dimension)
     const levelText = currentAreaLevel
     
-    // Obtener información del área (simulado - en producción vendría de props)
+   
     const competenceNumber = competence.code.split('.')[1]
     const areaNumber = competence.code.split('.')[0]
     const totalInArea = areaNumber === "1" ? 3 : areaNumber === "2" ? 6 : 4

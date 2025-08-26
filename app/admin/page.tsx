@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { Upload, FileText, AlertCircle } from "lucide-react"
-// Subida local de dataset via API
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function AdminPanel() {
@@ -221,7 +220,7 @@ export default function AdminPanel() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Accesos rápidos a datasets y ejercicios (demo 1.3 Avanzado) */}
+            
             <div className="mb-8 p-4 border rounded-md bg-muted/30">
               <h3 className="font-medium mb-2">Datasets XLSX (demo)</h3>
               <div className="flex flex-wrap gap-2">
@@ -270,7 +269,7 @@ export default function AdminPanel() {
               </p>
             </div>
 
-            {/* Sección: Subir dataset CSV/XLSX para Comp 1.3 Avanzado Ej1 */}
+            
             <div className="mb-8 p-4 border rounded-lg">
               <h2 className="text-lg font-medium mb-4">Dataset XLSX/CSV — Comp 1.3 Avanzado (Ej1)</h2>
               <div className="flex items-center gap-2 mb-3">

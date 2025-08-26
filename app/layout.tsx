@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <body className={inter.className}>
-        {/* Usar ClientWrapper para garantizar que AuthProvider solo se renderice del lado del cliente */}
+        
         <ClientWrapper>
           <AuthProvider>
             {children}

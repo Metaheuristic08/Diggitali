@@ -1,7 +1,3 @@
-/**
- * Script simplificado para limpiar sesiones duplicadas
- */
-
 const { initializeApp } = require("firebase/app")
 const { getFirestore, collection, query, where, getDocs, deleteDoc, doc } = require("firebase/firestore")
 
@@ -15,13 +11,13 @@ async function simpleCleanup() {
   console.log("🚀 Script simplificado de limpieza")
   
   try {
-    // Obtener todas las sesiones
+   
     const allSessionsQuery = query(collection(db, "testSessions"))
     const allSessionsSnapshot = await getDocs(allSessionsQuery)
     
     console.log(`📊 Total de sesiones: ${allSessionsSnapshot.size}`)
     
-    // Convertir a array simple
+   
     const allSessions = []
     allSessionsSnapshot.forEach(docSnap => {
       const data = docSnap.data()
@@ -37,7 +33,7 @@ async function simpleCleanup() {
       })
     })
     
-    // Agrupar por usuario/competencia/nivel
+   
     const groups = {}
     allSessions.forEach(session => {
       const key = `${session.userId}:${session.competence}:${session.level}`
@@ -47,7 +43,7 @@ async function simpleCleanup() {
       groups[key].push(session)
     })
     
-    // Procesar duplicados
+   
     let totalDeleted = 0
     
     for (const [key, sessions] of Object.entries(groups)) {
@@ -55,28 +51,28 @@ async function simpleCleanup() {
         const [userId, competence, level] = key.split(':')
         console.log(`\n🔍 ${competence}/${level} - ${sessions.length} sesiones:`)
         
-        // Encontrar la mejor sesión
+       
         let bestSession = null
         
-        // Prioridad 1: Sesión completada
+       
         const completed = sessions.filter(s => s.endTime)
         if (completed.length > 0) {
-          bestSession = completed[0] // Tomar la primera completada
+          bestSession = completed[0]
           console.log(`✅ Manteniendo sesión completada: ${bestSession.id}`)
         } else {
-          // Prioridad 2: Sesión con más respuestas
+         
           const withAnswers = sessions.filter(s => s.answers?.some(a => a !== null))
           if (withAnswers.length > 0) {
             bestSession = withAnswers[0]
             console.log(`🔄 Manteniendo sesión en progreso: ${bestSession.id}`)
           } else {
-            // Prioridad 3: Primera sesión
+           
             bestSession = sessions[0]
             console.log(`📅 Manteniendo primera sesión: ${bestSession.id}`)
           }
         }
         
-        // Eliminar las otras sesiones
+       
         for (const session of sessions) {
           if (session.id !== bestSession.id) {
             const answered = session.answers?.filter(a => a !== null && a !== undefined).length || 0

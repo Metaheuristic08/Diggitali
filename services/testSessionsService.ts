@@ -2,18 +2,14 @@ import { db } from "@/lib/firebase"
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, limit } from "firebase/firestore"
 import type { TestSession, Question } from "@/types"
 
-/**
- * DEPRECADO: Reemplazado por simpleSessionService.ts
- * Se mantiene temporalmente por compatibilidad. Evitar usar en nuevo código.
- */
 
-// ⚠️ LOGS TEMPORALES PARA DIAGNÓSTICO DE DUPLICIDAD
+
 let firestoreCallCounter = 0
 const pendingRequests = new Map<string, Promise<any>>()
 
 function logFirestoreCall(operation: string, details: string) {
   firestoreCallCounter++
-  // Log compacto sin trace para evitar ruido
+ 
   console.log(`[DEPRECATED testSessionsService #${firestoreCallCounter}] ${operation}: ${details}`)
 }
 
@@ -24,10 +20,6 @@ export interface SessionSearchResult {
   duplicateCount: number
 }
 
-/**
- * Busca sesiones existentes para una combinación usuario/competencia/nivel
- * Devuelve la mejor sesión disponible con información sobre duplicados
- */
 export async function findExistingSession(
   userId: string, 
   competence: string, 
@@ -35,7 +27,7 @@ export async function findExistingSession(
 ): Promise<SessionSearchResult> {
   const requestKey = `findSession::${userId}::${competence}::${level}`
   
-  // ⚠️ CACHE DE PROMESAS - Evitar llamadas concurrentes duplicadas
+ 
   if (pendingRequests.has(requestKey)) {
     logFirestoreCall("CACHE HIT findExistingSession", requestKey)
     return pendingRequests.get(requestKey)!
@@ -49,7 +41,7 @@ export async function findExistingSession(
 
   const promise = (async () => {
     try {
-      // Buscar todas las sesiones para esta combinación
+     
       const q = query(
         collection(db, "testSessions"),
         where("userId", "==", userId),
@@ -75,7 +67,7 @@ export async function findExistingSession(
         }
       }
 
-      // Consolidar sesiones usando lógica priorizada
+     
       const bestSession = consolidateSessions(sessions)
       
       return {
@@ -89,7 +81,7 @@ export async function findExistingSession(
       console.error("Error buscando sesiones existentes:", error)
       throw error
     } finally {
-      // Limpiar cache después de un tiempo
+     
       setTimeout(() => pendingRequests.delete(requestKey), 5000)
     }
   })()
@@ -98,10 +90,6 @@ export async function findExistingSession(
   return promise
 }
 
-/**
- * Crea o reutiliza una sesión de test
- * Evita duplicados buscando sesiones existentes primero
- */
 export async function createOrReuseSession(
   userId: string,
   competence: string,
@@ -110,7 +98,7 @@ export async function createOrReuseSession(
 ): Promise<TestSession> {
   const requestKey = `createOrReuse::${userId}::${competence}::${level}`
   
-  // ⚠️ CACHE DE PROMESAS - Evitar llamadas concurrentes duplicadas
+ 
   if (pendingRequests.has(requestKey)) {
     logFirestoreCall("CACHE HIT createOrReuseSession", requestKey)
     return pendingRequests.get(requestKey)!
@@ -124,33 +112,33 @@ export async function createOrReuseSession(
 
   const promise = (async () => {
     try {
-      // Buscar sesiones existentes
+     
       const searchResult = await findExistingSession(userId, competence, level)
 
       if (searchResult.session && searchResult.docId) {
-        // Si encontramos una sesión existente
+       
         if (searchResult.isDuplicate) {
           console.warn(`⚠️ Encontradas ${searchResult.duplicateCount} sesiones duplicadas para ${competence}/${level}`)
         }
 
         const existingSession = searchResult.session
         
-        // Si la sesión ya está completada, crear una nueva (para reintentos)
+       
         if (existingSession.endTime) {
           console.log("📝 Sesión anterior completada, creando nueva sesión...")
           return await createNewSession(userId, competence, level, questions)
         }
 
-        // Si la sesión está en progreso, reutilizarla
+       
         console.log("♻️ Reutilizando sesión existente en progreso")
         return {
           ...existingSession,
-          questions: questions, // Actualizar preguntas por si han cambiado
+          questions: questions,
           id: searchResult.docId
         }
       }
 
-      // No hay sesiones existentes, crear una nueva
+     
       console.log("🆕 Creando nueva sesión")
       return await createNewSession(userId, competence, level, questions)
 
@@ -158,7 +146,7 @@ export async function createOrReuseSession(
       console.error("Error creando/reutilizando sesión:", error)
       throw error
     } finally {
-      // Limpiar cache después de un tiempo
+     
       setTimeout(() => pendingRequests.delete(requestKey), 5000)
     }
   })()
@@ -167,9 +155,6 @@ export async function createOrReuseSession(
   return promise
 }
 
-/**
- * Crea una nueva sesión de test
- */
 async function createNewSession(
   userId: string,
   competence: string,
@@ -204,12 +189,6 @@ async function createNewSession(
   }
 }
 
-/**
- * Consolida múltiples sesiones priorizando por:
- * 1. Sesiones completadas (con endTime)
- * 2. Sesiones en progreso con más respuestas
- * 3. Sesiones más recientes
- */
 function consolidateSessions(sessions: Array<{ id: string; data: TestSession }>): { id: string; data: TestSession } {
   if (sessions.length === 0) {
     throw new Error("No hay sesiones para consolidar")
@@ -221,11 +200,11 @@ function consolidateSessions(sessions: Array<{ id: string; data: TestSession }>)
 
   console.log("🔄 Consolidando sesiones...")
 
-  // Separar sesiones completadas de las en progreso
+ 
   const completedSessions = sessions.filter(s => s.data.endTime)
   const inProgressSessions = sessions.filter(s => !s.data.endTime)
 
-  // Prioridad 1: Sesiones completadas (tomar la más reciente)
+ 
   if (completedSessions.length > 0) {
     const latest = completedSessions.sort((a, b) => 
       new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
@@ -235,17 +214,17 @@ function consolidateSessions(sessions: Array<{ id: string; data: TestSession }>)
     return latest
   }
 
-  // Prioridad 2: Sesiones en progreso (tomar la que tiene más respuestas)
+ 
   if (inProgressSessions.length > 0) {
     const bestInProgress = inProgressSessions.sort((a, b) => {
       const answersA = a.data.answers?.filter(ans => ans !== null && ans !== undefined).length || 0
       const answersB = b.data.answers?.filter(ans => ans !== null && ans !== undefined).length || 0
       
       if (answersA !== answersB) {
-        return answersB - answersA // Más respuestas primero
+        return answersB - answersA
       }
       
-      // Si tienen las mismas respuestas, tomar la más reciente
+     
       return new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
     })[0]
     
@@ -254,7 +233,7 @@ function consolidateSessions(sessions: Array<{ id: string; data: TestSession }>)
     return bestInProgress
   }
 
-  // Fallback: la sesión más reciente
+ 
   const latest = sessions.sort((a, b) => 
     new Date(b.data.startTime).getTime() - new Date(a.data.startTime).getTime()
   )[0]
@@ -263,9 +242,6 @@ function consolidateSessions(sessions: Array<{ id: string; data: TestSession }>)
   return latest
 }
 
-/**
- * Actualiza una sesión existente
- */
 export async function updateSession(
   sessionId: string,
   updates: Partial<TestSession>
@@ -282,9 +258,6 @@ export async function updateSession(
   }
 }
 
-/**
- * Obtiene estadísticas de sesiones duplicadas para debugging
- */
 export async function getSessionStats(userId: string): Promise<{
   totalSessions: number
   duplicateGroups: Array<{
@@ -306,7 +279,7 @@ export async function getSessionStats(userId: string): Promise<{
     const snapshot = await getDocs(q)
     const sessions = snapshot.docs.map(doc => doc.data() as TestSession)
 
-    // Agrupar por competencia/nivel
+   
     const groups: Record<string, number> = {}
     sessions.forEach(session => {
       const key = `${session.competence}/${session.level}`

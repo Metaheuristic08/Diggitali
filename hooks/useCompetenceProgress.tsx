@@ -28,7 +28,7 @@ export function useCompetenceProgress(): CompetenceProgressData {
     let unsubscribe: Unsubscribe | null = null
 
     try {
-      // Configurar listener en tiempo real para los resultados del usuario
+     
       const q = query(collection(db, "userResults"), where("userId", "==", user.uid))
       
       unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -90,7 +90,7 @@ export function useCompetenceProgress(): CompetenceProgressData {
       setLoading(false)
     }
 
-    // Cleanup function
+   
     return () => {
       if (unsubscribe) {
         unsubscribe()

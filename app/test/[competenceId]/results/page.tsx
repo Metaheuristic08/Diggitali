@@ -17,7 +17,7 @@ function TestResultsContent() {
   const router = useRouter()
   const params = useParams()
   const { user } = useAuth()
-  // ✅ FIX: Definir competenceId localmente (antes provocaba ReferenceError al usar variable no declarada)
+ 
   const competenceId = params?.competenceId as string | undefined
 
   const score = Number.parseInt(searchParams.get("score") || "0")
@@ -35,9 +35,9 @@ function TestResultsContent() {
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [loadingQuestions, setLoadingQuestions] = useState(true)
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false) // Prevenir múltiples cargas
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
-  // Función para cargar todas las preguntas del área (9 preguntas de 3 niveles)
+ 
   const loadAllAreaQuestions = async (competenceId: string) => {
     if (!user?.uid || !db) {
       console.log('Usuario o DB no disponible para cargar preguntas del área')
@@ -109,15 +109,15 @@ function TestResultsContent() {
   }
 
   useEffect(() => {
-    // Prevenir múltiples ejecuciones con dependencias específicas
+   
   if (hasLoadedOnce || !user?.uid || !competenceId) return
 
     const run = async () => {
       setLoadingArea(true)
       setLoadingQuestions(true)
-      setHasLoadedOnce(true) // Marcar como cargado ANTES de empezar
+      setHasLoadedOnce(true)
       try {
-        // Primero intentar cargar los datos desde sessionStorage
+       
         let questionsLoaded = false
 
         try {
@@ -125,7 +125,7 @@ function TestResultsContent() {
           if (testResultDataStr) {
             const testResultData = JSON.parse(testResultDataStr)
 
-            // Validar que los datos coincidan con la competencia y nivel actuales
+           
             const isValidData = testResultData.questions &&
               testResultData.answers &&
               competenceId &&
@@ -138,22 +138,22 @@ function TestResultsContent() {
               setUserAnswers(testResultData.answers)
               questionsLoaded = true
 
-              // Limpiar sessionStorage después de uso exitoso
+             
               if (!areaCompleted) {
                 sessionStorage.removeItem('testResultData')
               }
             } else {
-              // Datos no coinciden con contexto actual - limpiar
-              sessionStorage.removeItem('testResultData') // Limpiar datos inválidos
+             
+              sessionStorage.removeItem('testResultData')
             }
           } else {
-            // No hay datos previos en sessionStorage - normal para carga directa
+           
           }
         } catch (error) {
           console.error('❌ Error cargando datos desde sessionStorage:', error)
         }
 
-        // Si areaCompleted es true, cargar TODAS las preguntas del área
+       
         if (areaCompleted && !questionsLoaded) {
           console.log('🏆 Área completa detectada, cargando todas las preguntas desde Firebase...')
           if (competenceId) {
@@ -162,12 +162,12 @@ function TestResultsContent() {
           questionsLoaded = true
         }
 
-        // Si no se cargaron las preguntas aún, cargar desde Firebase como respaldo
+       
         if (!questionsLoaded && db) {
           console.log('🔄 Cargando sesión desde Firebase como respaldo...')
           console.log(`🔍 Buscando sesión: userId=${user.uid}, competence=${competenceId}, level=${levelParam}`)
 
-          // Buscar todas las sesiones de la competencia/nivel y consolidar
+         
           const sessionQuery = query(
             collection(db, "testSessions"),
             where("userId", "==", user.uid),
@@ -178,7 +178,7 @@ function TestResultsContent() {
           const sessionSnapshot = await getDocs(sessionQuery)
 
           if (!sessionSnapshot.empty) {
-            // Si hay múltiples sesiones, usar la más relevante (completada > en progreso > inicial)
+           
             const sessions = sessionSnapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data()
@@ -193,7 +193,7 @@ function TestResultsContent() {
               score: s.score
             })))
 
-            // Priorizar: completadas > en progreso > inicial
+           
             const completedSessions = sessions.filter((s: any) => s.endTime)
             const inProgressSessions = sessions.filter((s: any) => !s.endTime && s.answers?.some((a: any) => a !== null))
             const initialSessions = sessions.filter((s: any) => !s.endTime && !s.answers?.some((a: any) => a !== null))
@@ -238,7 +238,7 @@ function TestResultsContent() {
             console.log("❌ No se encontró sesión en Firebase para esta competencia y nivel")
             console.log(`🔍 Búsqueda realizada: userId=${user.uid}, competence=${competenceId}, level=${levelParam}`)
 
-            // ✅ DEBUGGING: Intentar buscar TODAS las sesiones del usuario para ver qué hay
+           
             const allSessionsQuery = query(
               collection(db, "testSessions"),
               where("userId", "==", user.uid)
@@ -253,7 +253,7 @@ function TestResultsContent() {
         }
 
         if (!areaCompleted) {
-          // ✅ NUEVO: Detectar siguiente competencia incluso si área no está completa
+         
           const comps = await loadCompetences()
           const current = comps.find(c => c.id === competenceId)
           if (current) {
@@ -278,7 +278,7 @@ function TestResultsContent() {
         const inArea = comps.filter(c => c.dimension === current.dimension).sort((a, b) => a.code.localeCompare(b.code))
         setFirstCompetenceInArea(inArea[0]?.id || null)
 
-        // ✅ NUEVO: Detectar siguiente competencia en orden progresivo (para área completada)
+       
         const currentIndex = inArea.findIndex(c => c.id === competenceId)
         const nextCompetence = inArea[currentIndex + 1]
         if (nextCompetence) {
@@ -290,7 +290,7 @@ function TestResultsContent() {
           setNextCompetenceInfo(null)
         }
 
-        // Contar cuántas competencias del área tienen 100% en este nivel
+       
         const lvl = levelParam
         let completed = 0
         for (const c of inArea) {
@@ -308,7 +308,7 @@ function TestResultsContent() {
       }
     }
     run()
-  }, [params.competenceId, user?.uid]) // Dependencias reducidas para evitar re-renders
+  }, [params.competenceId, user?.uid])
 
   const handleReturnToDashboard = () => {
     router.push("/dashboard")
@@ -321,9 +321,9 @@ function TestResultsContent() {
   }
 
   const handleContinueEvaluation = () => {
-    // Continuar al siguiente nivel de la primera competencia (1er código del área) si completó el área
+   
     const currentCompetenceId = firstCompetenceInArea || (params.competenceId as string)
-    // Simplemente re-dirigir a la primera competencia del área pero con siguiente nivel
+   
     const nextLevel = levelParam.startsWith("b") ? "intermedio" : levelParam.startsWith("i") ? "avanzado" : null
     if (nextLevel) {
       router.push(`/test/${currentCompetenceId}?level=${nextLevel}`)
@@ -332,7 +332,7 @@ function TestResultsContent() {
     }
   }
 
-  // ✅ NUEVA: Función para continuar con la siguiente competencia del área
+ 
   const handleContinueToNextCompetence = () => {
     if (nextCompetenceInfo) {
       const confirmed = confirm(
@@ -351,10 +351,10 @@ function TestResultsContent() {
 
   return (
     <>
-      {/* Sidebar fijo (ya maneja su propio responsive) */}
+      
       <Sidebar />
 
-      {/* Contenido con padding para no quedar debajo del sidebar en desktop */}
+      
       <div className="min-h-screen bg-[#f3fbfb] lg:pl-72 flex items-center justify-center p-3 sm:p-4">
         <Card className="w-full max-w-2xl shadow-2xl rounded-2xl sm:rounded-3xl border-0 overflow-hidden">
           <CardHeader className="text-center bg-gradient-to-b from-white to-gray-50 pb-6 sm:pb-8 px-4 sm:px-6">
@@ -445,7 +445,7 @@ function TestResultsContent() {
                 </div>
               ) : testQuestions.length > 0 ? (
                 <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                  {/* Navegación del carrusel mejorada */}
+                  
                   <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                     <button
                       onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
@@ -463,15 +463,15 @@ function TestResultsContent() {
                       <span className="text-sm text-gray-600 font-medium mb-2 block">
                         Pregunta {currentQuestionIndex + 1} de {testQuestions.length}
                       </span>
-                      {/* Indicadores de progreso mejorados */}
+                      
                       <div className="flex items-center justify-center gap-2 mb-3">
                         {testQuestions.map((_, index) => {
-                          // Determinar color del indicador basado en el nivel si hay 9 preguntas
+                         
                           let indicatorColor = 'bg-gray-300 hover:bg-gray-400'
                           if (testQuestions.length > 3) {
-                            if (index < 3) indicatorColor = 'bg-green-300 hover:bg-green-400' // Básico
-                            else if (index < 6) indicatorColor = 'bg-blue-300 hover:bg-blue-400' // Intermedio  
-                            else indicatorColor = 'bg-purple-300 hover:bg-purple-400' // Avanzado
+                            if (index < 3) indicatorColor = 'bg-green-300 hover:bg-green-400'
+                            else if (index < 6) indicatorColor = 'bg-blue-300 hover:bg-blue-400'
+                            else indicatorColor = 'bg-purple-300 hover:bg-purple-400'
                           }
 
                           if (index === currentQuestionIndex) {
@@ -492,7 +492,7 @@ function TestResultsContent() {
                           )
                         })}
                       </div>
-                      {/* Leyenda de colores para área completa */}
+                      
                       {testQuestions.length > 3 && (
                         <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
                           <div className="flex items-center gap-1">
@@ -524,7 +524,7 @@ function TestResultsContent() {
                     </button>
                   </div>
 
-                  {/* Contenido de la pregunta mejorado */}
+                  
                   <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 shadow-sm">
                     <div className="mb-6">
                       <div className="flex items-center gap-3 mb-4">
@@ -535,7 +535,7 @@ function TestResultsContent() {
                           <h4 className="font-semibold text-gray-900 text-lg">
                             {testQuestions[currentQuestionIndex]?.title}
                           </h4>
-                          {/* Mostrar nivel si hay más de 3 preguntas (área completa) */}
+                          
                           {testQuestions.length > 3 && (
                             <div className="mt-1">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${currentQuestionIndex < 3
@@ -565,7 +565,7 @@ function TestResultsContent() {
 
                         let className = "p-4 rounded-lg border text-sm transition-all duration-200 "
                         let iconElement = null
-                        let letterLabel = String.fromCharCode(65 + index) // A, B, C, D
+                        let letterLabel = String.fromCharCode(65 + index)
 
                         if (isUserAnswer && isCorrectAnswer) {
                           className += "bg-green-50 border-green-300 text-green-800 shadow-md ring-2 ring-green-200"
@@ -604,7 +604,7 @@ function TestResultsContent() {
                       })}
                     </div>
 
-                    {/* Resumen de la respuesta mejorado */}
+                    
                     <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
                       <div className="text-sm">
                         <h5 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
@@ -654,7 +654,7 @@ function TestResultsContent() {
                     </div>
                   </div>
 
-                  {/* Indicadores visuales de correcta/incorrecta - Puntos indicadores */}
+                  
                   <div className="flex justify-center gap-2 mt-4">
                     {testQuestions.map((_, index) => {
                       const userAnswer = userAnswers[index]
@@ -721,9 +721,9 @@ function TestResultsContent() {
                 </Button>
               )}
 
-              {/* ✅ LÓGICA CORREGIDA: Botón para siguiente competencia, siguiente nivel o dashboard */}
+              
               {!areaCompleted && nextCompetenceInfo && passed ? (
-                // Hay siguiente competencia en el área
+               
                 <Button
                   onClick={handleContinueToNextCompetence}
                   className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold"
@@ -731,17 +731,17 @@ function TestResultsContent() {
                   Continuar con {nextCompetenceInfo.name.split(' ').slice(0, 3).join(' ')}...
                 </Button>
               ) : !areaCompleted && !nextCompetenceInfo && passed ? (
-                // No hay más competencias en el área, ir al dashboard
+               
                 <Button onClick={handleReturnToDashboard} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
                   Ir al Dashboard
                 </Button>
               ) : !areaCompleted && !passed ? (
-                // No pasó el test
+               
                 <Button onClick={handleReturnToDashboard} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
                   Ir al Dashboard
                 </Button>
               ) : (
-                // Área completada - continuar al siguiente nivel
+               
                 <Button onClick={handleContinueEvaluation} className="flex-1 bg-[#286675] hover:bg-[#1e4a56] text-white rounded-xl sm:rounded-2xl py-3 text-base sm:text-lg font-semibold">
                   Continuar al siguiente nivel
                 </Button>

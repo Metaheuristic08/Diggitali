@@ -1,10 +1,3 @@
-/**
- * Script de migración para limpiar sesiones duplicadas
- * 
- * Este script debe ejecutarse UNA VEZ para limpiar las sesiones duplicadas
- * que ya existen en la base de datos de Firebase.
- */
-
 import { initializeApp } from "firebase/app"
 import { getFirestore, collection, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore"
 
@@ -25,20 +18,17 @@ interface SessionData {
   passed?: boolean
 }
 
-/**
- * Consolida sesiones duplicadas usando la misma lógica que el frontend
- */
 function consolidateDuplicates(sessions: SessionData[]): SessionData {
   if (sessions.length === 1) return sessions[0]
 
   console.log(`🔄 Consolidando ${sessions.length} sesiones duplicadas...`)
 
-  // Separar por tipo
+ 
   const completedSessions = sessions.filter(s => s.endTime)
   const inProgressSessions = sessions.filter(s => !s.endTime && s.answers?.some(a => a !== null))
   const initialSessions = sessions.filter(s => !s.endTime && !s.answers?.some(a => a !== null))
 
-  // Prioridad 1: Sesiones completadas (la más reciente)
+ 
   if (completedSessions.length > 0) {
     const latest = completedSessions.sort((a, b) => {
       const timeA = a.endTime?.toDate?.() || a.endTime || new Date(a.startTime)
@@ -50,7 +40,7 @@ function consolidateDuplicates(sessions: SessionData[]): SessionData {
     return latest
   }
 
-  // Prioridad 2: Sesiones en progreso (la que tiene más respuestas)
+ 
   if (inProgressSessions.length > 0) {
     const bestInProgress = inProgressSessions.sort((a, b) => {
       const answersA = a.answers?.filter(ans => ans !== null && ans !== undefined).length || 0
@@ -68,7 +58,7 @@ function consolidateDuplicates(sessions: SessionData[]): SessionData {
     return bestInProgress
   }
 
-  // Prioridad 3: Sesiones iniciales (la más reciente)
+ 
   const latest = initialSessions.sort((a, b) => 
     new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
   )[0] || sessions[0]
@@ -77,20 +67,18 @@ function consolidateDuplicates(sessions: SessionData[]): SessionData {
   return latest
 }
 
-/**
- * Encuentra y limpia sesiones duplicadas
- */
+
 async function cleanDuplicateSessions() {
   console.log("🧹 Iniciando limpieza de sesiones duplicadas...")
   
   try {
-    // Obtener todas las sesiones
+   
     const allSessionsQuery = query(collection(db, "testSessions"))
     const allSessionsSnapshot = await getDocs(allSessionsQuery)
     
     console.log(`📊 Total de sesiones encontradas: ${allSessionsSnapshot.size}`)
     
-    // Agrupar por usuario/competencia/nivel
+   
     const sessionGroups: Record<string, SessionData[]> = {}
     
     allSessionsSnapshot.forEach(doc => {
@@ -107,7 +95,7 @@ async function cleanDuplicateSessions() {
       sessionGroups[key].push(session)
     })
     
-    // Procesar grupos con duplicados
+   
     let totalDeleted = 0
     let groupsProcessed = 0
     
@@ -116,13 +104,13 @@ async function cleanDuplicateSessions() {
         const [userId, competence, level] = key.split(':')
         console.log(`\n🔍 Procesando ${sessions.length} sesiones duplicadas para ${competence}/${level}`)
         
-        // Consolidar y mantener la mejor sesión
+       
         const bestSession = consolidateDuplicates(sessions)
         const sessionsToDelete = sessions.filter(s => s.id !== bestSession.id)
         
         console.log(`🗑️ Eliminando ${sessionsToDelete.length} sesiones duplicadas`)
         
-        // Eliminar sesiones duplicadas
+       
         for (const session of sessionsToDelete) {
           try {
             await deleteDoc(doc(db, "testSessions", session.id))
@@ -156,9 +144,6 @@ async function cleanDuplicateSessions() {
   }
 }
 
-/**
- * Genera reporte de sesiones duplicadas sin eliminar nada
- */
 async function reportDuplicates() {
   console.log("📋 Generando reporte de sesiones duplicadas...")
   
@@ -166,7 +151,7 @@ async function reportDuplicates() {
     const allSessionsQuery = query(collection(db, "testSessions"))
     const allSessionsSnapshot = await getDocs(allSessionsQuery)
     
-    // Agrupar por usuario/competencia/nivel
+   
     const sessionGroups: Record<string, SessionData[]> = {}
     
     allSessionsSnapshot.forEach(doc => {
@@ -183,7 +168,7 @@ async function reportDuplicates() {
       sessionGroups[key].push(session)
     })
     
-    // Mostrar reporte
+   
     const duplicateGroups = Object.entries(sessionGroups).filter(([, sessions]) => sessions.length > 1)
     
     console.log(`\n📊 REPORTE DE DUPLICADOS:`)
@@ -210,9 +195,6 @@ async function reportDuplicates() {
   }
 }
 
-/**
- * Función principal
- */
 async function main() {
   const args = process.argv.slice(2)
   const command = args[0] || 'report'
@@ -237,7 +219,6 @@ async function main() {
   }
 }
 
-// Ejecutar si es llamado directamente
 if (require.main === module) {
   main()
     .then(() => {

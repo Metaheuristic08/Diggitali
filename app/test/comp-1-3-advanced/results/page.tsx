@@ -58,7 +58,7 @@ function AdvancedTestResultsContent() {
 
         <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8">
           
-          {/* Estadísticas principales */}
+          
           <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
             <div className="p-3 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200">
               <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{totalQuestions}</div>
@@ -76,7 +76,7 @@ function AdvancedTestResultsContent() {
             </div>
           </div>
 
-          {/* Puntuación final */}
+          
           <div className="text-center p-6 sm:p-8 bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50 rounded-2xl sm:rounded-3xl border border-purple-200 shadow-lg">
             <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 sm:mb-3">
               {score}%
@@ -90,12 +90,12 @@ function AdvancedTestResultsContent() {
             )}
           </div>
 
-          {/* Desglose por ejercicio */}
+          
           <div className="space-y-3 sm:space-y-4">
             <h3 className="font-bold text-gray-900 text-base sm:text-lg">Resumen por ejercicio:</h3>
             <div className="space-y-2 sm:space-y-3">
               
-              {/* Ejercicio 1: Estadísticas */}
+              
               <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl sm:rounded-2xl border border-green-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <FileSpreadsheet className="w-5 h-5 text-green-600" />
@@ -109,7 +109,7 @@ function AdvancedTestResultsContent() {
                 </div>
               </div>
 
-              {/* Ejercicio 2: Tabla Dinámica */}
+              
               <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl sm:rounded-2xl border border-blue-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <FileSpreadsheet className="w-5 h-5 text-blue-600" />
@@ -123,7 +123,7 @@ function AdvancedTestResultsContent() {
                 </div>
               </div>
 
-              {/* Ejercicio 3: Gráfico Dinámico */}
+              
               <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl sm:rounded-2xl border border-purple-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <FileSpreadsheet className="w-5 h-5 text-purple-600" />
@@ -139,7 +139,7 @@ function AdvancedTestResultsContent() {
             </div>
           </div>
 
-          {/* Botones de acción */}
+          
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
             <Button
               onClick={handleReturnToDashboard}

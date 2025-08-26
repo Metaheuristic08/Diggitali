@@ -6,9 +6,9 @@ import { useEffect, useState } from "react"
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
-  // Garantizar que el componente solo se renderice en el cliente
+ 
   useEffect(() => {
-    // Pequeño retraso para asegurar que todos los recursos estén cargados
+   
     const timer = setTimeout(() => {
       setMounted(true)
     }, 100)
@@ -16,7 +16,7 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     return () => clearTimeout(timer)
   }, [])
 
-  // No renderizar nada en el servidor o durante la hidratación inicial
+ 
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center Ladico-gradient">

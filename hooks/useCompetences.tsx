@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { loadCompetences } from '@/services/questionsService'
 import type { Competence } from '@/types'
 
-// Caché compartido en memoria para todos los componentes que usen este hook
 let sharedCompetences: Competence[] | null = null;
 let fetchPromise: Promise<Competence[]> | null = null;
 
@@ -20,12 +19,12 @@ export function useCompetences(): UseCompetencesResult {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    // Si ya tenemos datos en caché, no hacemos nada
+   
     if (sharedCompetences) {
       return;
     }
 
-    // Si ya hay una petición en curso, esperamos a que termine
+   
     if (fetchPromise) {
       fetchPromise.then(data => {
         setCompetences(data);
@@ -38,17 +37,17 @@ export function useCompetences(): UseCompetencesResult {
       return;
     }
 
-    // Si no hay petición en curso, la iniciamos
+   
     const fetchCompetences = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Crear una única promesa que todos los hooks compartirán
+       
         fetchPromise = loadCompetences();
         const data = await fetchPromise;
         
-        // Guardar en caché compartida
+       
         sharedCompetences = data;
         setCompetences(data);
       } catch (err) {
@@ -61,7 +60,7 @@ export function useCompetences(): UseCompetencesResult {
     };
 
     fetchCompetences();
-  }, []); // Sin dependencias para evitar re-ejecutar
+  }, []);
 
   return { competences, loading, error };
 }

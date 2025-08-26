@@ -155,16 +155,16 @@ export default function Dashboard() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
                     {competences.map((competence) => {
-                      // Nivel "global" del área (para navegación futura)
+                     
                       const areaLevel = currentAreaLevel(competence.dimension)
-                      // Determinar el nivel que realmente tiene datos para esta competencia
+                     
                       const allLevels: Array<"Básico"|"Intermedio"|"Avanzado"> = ["Básico","Intermedio","Avanzado"]
                       let displayLevel: "Básico"|"Intermedio"|"Avanzado" = areaLevel
                       for (const lvl of allLevels) {
                         const st = perCompetenceLevel[competence.id]?.[lvl]
                         if (st && (st.completed || st.inProgress || st.answered>0)) {
                           displayLevel = lvl
-                          break // mostrar el primer nivel con actividad (Básico primero)
+                          break
                         }
                       }
                       const status = perCompetenceLevel[competence.id]?.[displayLevel] || { completed: false, inProgress: false, answered: 0, total: 3, progressPct: 0 }

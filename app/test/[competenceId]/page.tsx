@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast"
 
 import { saveUserResult } from "@/utils/results-manager"
 import { loadQuestionsByCompetence, updateQuestionStats, loadCompetences } from "@/services/questionsService"
-// Nuevo servicio simplificado de sesiones
 import { getOrCreateActiveSession, updateSessionAnswer, completeSession } from "@/services/simpleSessionService"
 
 export default function TestPage() {
@@ -25,11 +24,11 @@ export default function TestPage() {
   const [testSession, setTestSession] = useState<TestSession | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Guard para evitar montajes múltiples
+ 
   const initRan = useRef(false)
 
-  
-  
+
+
 
   useEffect(() => {
     if (initRan.current) return
@@ -38,16 +37,16 @@ export default function TestPage() {
     bootstrap()
   }, [user, userData])
 
-  // Carga inicial de preguntas + sesión
+ 
   const bootstrap = async () => {
     try {
       const competenceId = params.competenceId as string
       const levelParam = (searchParams.get("level") || "basico").toLowerCase()
       const levelName = levelParam.startsWith("b") ? "Básico" : levelParam.startsWith("i") ? "Intermedio" : "Avanzado"
 
-  const comps = await loadCompetences() // solo para nombres/dimensiones si se requiere más adelante
+      const comps = await loadCompetences()
 
-      // Si ya completada y usuario entra de nuevo -> enviar a resultados (no recrear sesión automáticamente)
+     
       if (userData.completedCompetences.includes(competenceId)) {
         router.push(`/test/${competenceId}/results?completed=true&score=100&passed=true&correct=3&level=${levelParam}`)
         return
@@ -68,7 +67,7 @@ export default function TestPage() {
     }
   }
 
-  // Eliminado loadQuestions antiguo
+ 
 
   const handleAnswerSubmit = async (answerIndex: number, questionIndex: number) => {
     if (!testSession) return
@@ -82,34 +81,34 @@ export default function TestPage() {
 
   const handleTestComplete = async (finalSession: TestSession) => {
     try {
-      
+
       let correctAnswers = 0
 
-      
+
       await Promise.all(finalSession.questions.map(async (question, index) => {
         const userAnswer = finalSession.answers[index]
         const wasCorrect = userAnswer === question.correctAnswerIndex
-        
+
         console.log(`Pregunta ${index + 1}: ${question.title}`)
         console.log(`  Usuario respondió: ${userAnswer !== null ? `Opción ${userAnswer + 1} (índice ${userAnswer}) - "${question.options[userAnswer]}"` : "No respondió"}`)
         console.log(`  Respuesta correcta: Opción ${question.correctAnswerIndex + 1} (índice ${question.correctAnswerIndex}) - "${question.options[question.correctAnswerIndex]}"`)
         console.log(`  ¿Correcta?: ${wasCorrect ? "SÍ" : "NO"}`)
         console.log(`  🔍 DEBUG: userAnswer=${userAnswer}, correctAnswerIndex=${question.correctAnswerIndex}, comparison=${userAnswer} === ${question.correctAnswerIndex} = ${wasCorrect}`)
         console.log("---")
-        
+
         if (wasCorrect) {
           correctAnswers++
           console.log(`✅ Respuesta ${index + 1} marcada como correcta. Total correctas: ${correctAnswers}`)
         } else {
           console.log(`❌ Respuesta ${index + 1} marcada como incorrecta.`)
         }
-        
-        
+
+
         await updateQuestionStats(question.id, wasCorrect)
       }))
 
-  const score = Math.round((correctAnswers / finalSession.questions.length) * 100)
-  const passed = correctAnswers >= 2 
+      const score = Math.round((correctAnswers / finalSession.questions.length) * 100)
+      const passed = correctAnswers >= 2
 
       const completedSession = {
         ...finalSession,
@@ -118,18 +117,18 @@ export default function TestPage() {
         passed,
       }
 
-  // Completar sesión simplificada
-  await completeSession(completedSession, correctAnswers)
+     
+      await completeSession(completedSession, correctAnswers)
 
-      
+
       try {
         await saveUserResult(completedSession)
       } catch (error) {
         console.error("Error saving user result:", error)
       }
 
-      
-  if (passed && userData && db) {
+
+      if (passed && userData && db) {
         try {
           const updatedCompetences = [...userData.completedCompetences]
           if (!updatedCompetences.includes(finalSession.competence)) {
@@ -138,10 +137,10 @@ export default function TestPage() {
 
           await updateDoc(doc(db, "users", user!.uid), {
             completedCompetences: updatedCompetences,
-            
-            
-            
-            
+
+
+
+
             LadicoScore: userData.LadicoScore + (passed ? 10 : 0),
           })
         } catch (error) {
@@ -149,17 +148,17 @@ export default function TestPage() {
         }
       }
 
-      
-      // Decidir siguiente paso según progreso del área y nivel actual
+
+     
       const comps = await loadCompetences()
       const currentComp = comps.find(c => c.id === (params.competenceId as string))
       const dimension = currentComp?.dimension || ""
       const levelParam = (searchParams.get("level") || "basico").toLowerCase()
 
-      // Lista ordenada de competencias del área
+     
       const areaCompetences = comps.filter(c => c.dimension === dimension).sort((a, b) => a.code.localeCompare(b.code))
 
-      // Chequear completadas (3/3 correctas) para el nivel
+     
       let allCompletedAtLevel = true
       let nextCompetenceId: string | null = null
       for (const c of areaCompetences) {
@@ -171,7 +170,7 @@ export default function TestPage() {
         }
       }
 
-      // ✅ ARREGLO: Determinar si RECIÉN se completó el área vs ya estaba completa
+     
       const wasAreaAlreadyComplete = allCompletedAtLevel && nextCompetenceId !== params.competenceId
       const justCompletedArea = allCompletedAtLevel && !wasAreaAlreadyComplete
 
@@ -180,8 +179,8 @@ export default function TestPage() {
       console.log(`  - wasAreaAlreadyComplete: ${wasAreaAlreadyComplete}`)
       console.log(`  - justCompletedArea: ${justCompletedArea}`)
       console.log(`  - nextCompetenceId: ${nextCompetenceId}`)
-      
-      // Guardar datos del test en sessionStorage para la página de resultados
+
+     
       const testResultData = {
         questions: finalSession.questions,
         answers: finalSession.answers,
@@ -190,10 +189,10 @@ export default function TestPage() {
         score,
         correctAnswers,
         totalQuestions: finalSession.questions.length,
-        isAreaComplete: justCompletedArea // Solo si RECIÉN completó el área
+        isAreaComplete: justCompletedArea
       }
-    
-      
+
+
       try {
         sessionStorage.setItem('testResultData', JSON.stringify(testResultData))
         console.log('Datos del test guardados en sessionStorage:', testResultData)
@@ -201,10 +200,10 @@ export default function TestPage() {
         console.error('Error guardando datos en sessionStorage:', error)
       }
 
-      // ✅ ARREGLO: Solo marcar areaCompleted=1 si RECIÉN completó toda el área
+     
       const areaCompletedParam = justCompletedArea ? "1" : "0"
-  // Sin cache local ya
-  router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=${areaCompletedParam}&level=${levelParam}`)
+     
+      router.push(`/test/${params.competenceId}/results?score=${score}&passed=${passed}&correct=${correctAnswers}&areaCompleted=${areaCompletedParam}&level=${levelParam}`)
     } catch (error) {
       console.error("Error saving test results:", error)
       toast({
